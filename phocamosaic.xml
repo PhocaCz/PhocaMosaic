@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade" version="6.0">
+	<name>com_phocamosaic</name>
+	<author>Jan Pavelka (www.phoca.cz)</author>
+	<creationDate>18/02/2026</creationDate>
+	<authorEmail></authorEmail>
+	<authorUrl>https://www.phoca.cz</authorUrl>
+	<copyright>Jan Pavelka</copyright>
+	<license>GNU/GPL</license>
+	<version>6.0.0Alpha3</version>
+	<description>COM_PHOCAMOSAIC_XML_DESCRIPTION</description>
+	<namespace path="src">Phoca\Component\PhocaMosaic</namespace>
+	<projectName>PhocaMosaic</projectName>
+
+	<install>
+		<sql>
+			<file driver="mysql" charset="utf8">install/sql/mysql/install.utf8.sql</file>
+		</sql>
+	</install>
+
+	<uninstall>
+		<sql>
+			<file driver="mysql" charset="utf8">install/sql/mysql/uninstall.utf8.sql</file>
+		</sql>
+	</uninstall>
+
+	<update>
+		<schemas>
+			<schemapath type="mysql">update/sql/mysql</schemapath>
+		</schemas>
+	</update>
+
+	<media destination="com_phocamosaic" folder="media">
+		<folder>images</folder>
+		<folder>css</folder>
+		<folder>js</folder>
+		<filename>joomla.asset.json</filename>
+	</media>
+
+	<languages folder="admin/language">
+		<language tag="en-GB" client="site">en-GB/en-GB.com_phocamosaic.ini</language>
+		<language tag="en-GB" client="site">en-GB/en-GB.com_phocamosaic.sys.ini</language>
+	</languages>
+
+	<administration>
+
+		<menu img="class:cp" alt="COM_PHOCAMOSAIC" link="option=com_phocamosaic">COM_PHOCAMOSAIC</menu>
+
+		<files folder="admin">
+			<folder>tmpl</folder>
+			<folder>src</folder>
+			<folder>update</folder>
+			<folder>help</folder>
+			<folder>layouts</folder>
+			<folder>install</folder>
+			<folder>services</folder>
+			<filename>config.xml</filename>
+			<filename>access.xml</filename>
+		</files>
+
+		<languages folder="admin/language">
+			<language tag="en-GB">en-GB/en-GB.com_phocamosaic.ini</language>
+			<language tag="en-GB">en-GB/en-GB.com_phocamosaic.sys.ini</language>
+		</languages>
+	</administration>
+	
+	
+
+	<updateservers>
+		<server type="extension" name="COM_PHOCAMOSAIC" priority="1"><![CDATA[https://raw.githubusercontent.com/PhocaCz/PhocaMosaic/master/manifest.xml]]></server>
+	</updateservers>
+</extension>

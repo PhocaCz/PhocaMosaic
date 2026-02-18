@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "com_phocamosaic",
+  "version": "6.0.0",
+  "description": "Phoca Mosaic Image Editor Assets",
+  "license": "GPL-3.0-or-later",
+  "assets": [
+    {
+      "name": "com_phocamosaic.mosaic-ui",
+      "type": "style",
+      "uri": "../media/com_phocamosaic/css/mosaic-ui.css"
+    },
+    {
+      "name": "com_phocamosaic.explorer-css",
+      "type": "style",
+      "uri": "../media/com_phocamosaic/css/explorer.css"
+    },
+    {
+      "name": "com_phocamosaic.editor-css",
+      "type": "style",
+      "uri": "../media/com_phocamosaic/css/editor.css"
+    },
+    {
+      "name": "com_phocamosaic.explorer",
+      "type": "script",
+      "uri": "../media/com_phocamosaic/js/explorer.mjs",
+      "attributes": {
+        "type": "module"
+      }
+    },
+    {
+      "name": "com_phocamosaic.enhanced-editor",
+      "type": "script",
+      "uri": "../media/com_phocamosaic/js/enhanced-editor.js"
+    }
+  ]
+}

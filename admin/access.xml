@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<access component="com_phocamosaic">
+    <section name="component">
+        <action name="core.admin" title="JACTION_ADMIN" />
+        <action name="core.manage" title="JACTION_MANAGE" />
+        <action name="core.create" title="JACTION_CREATE" />
+        <action name="core.delete" title="JACTION_DELETE" />
+        <action name="core.edit" title="JACTION_EDIT" />
+        <action name="core.edit.state" title="JACTION_EDITSTATE" />
+        <action name="core.edit.own" title="JACTION_EDITOWN" />
+    </section>
+    
+    <section name="image">
+        <action name="core.edit" title="COM_PHOCAMOSAIC_ACTION_EDIT_IMAGE" description="COM_PHOCAMOSAIC_ACTION_EDIT_IMAGE_DESC" />
+        <action name="core.manage" title="COM_PHOCAMOSAIC_ACTION_MANAGE_BACKUPS" description="COM_PHOCAMOSAIC_ACTION_MANAGE_BACKUPS_DESC" />
+    </section>
+</access>

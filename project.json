@@ -1,0 +1,34 @@
+{
+	"author": "Jan Pavelka (www.phoca.cz)",
+	"authorUrl": "https://www.phoca.cz",
+	"copyright": "Jan Pavelka",
+	"license": "GNU/GPL",
+	"projectName": "PhocaMosaic",
+	"extensionName": "Phoca Mosaic",
+	"projectInitials" : "PMS",
+	"description": "Phoca Mosaic is a powerful image editor for Joomla, featuring 7 essential editing functions and 45 creative filters. It includes a Preset system to save and reuse filter configurations across images.",
+	"projectUrl": "https://www.phoca.cz/phocamosaic",
+	"projectDocumentationUrl": "https://www.phoca.cz/documentation",
+	"projectMainComponent": "Phoca Mosaic",
+	"projectMainComponentInfoUrl": "https://www.phoca.cz/",
+	"projectDemo" : {
+		"Phoca Mosaic Demo": "https://www.phoca.cz/demo/"
+	},
+	"projectColor": "#f5c8d4",
+	"nameSpace": "Phoca\\Component\\PhocaMosaic",
+	"menu": {
+		"main":{
+			"0" : {
+				"image": "class:cp",
+				"view": "",
+				"link": "option=com_phocamosaic",
+				"title": "COM_PHOCAMOSAIC"
+			}
+		}
+	},
+	"projectDocumentationLinks": {
+	},
+	
+	"projectMiscLinks": {
+	}
+}

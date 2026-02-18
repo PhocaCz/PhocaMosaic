@@ -1,0 +1,485 @@
+/* @package Joomla
+ * @copyright Copyright (C) Open Source Matters. All rights reserved.
+ * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
+ * @extension Phoca Extension
+ * @copyright Copyright (C) Jan Pavelka www.phoca.cz
+ * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
+ */
+
+/* Light theme colors */
+[data-bs-theme=light] {
+    --ph-mosaic-bg-dark: #f8f9fa;
+    --ph-mosaic-bg-medium: #ffffff;
+    --ph-mosaic-bg-light: #e9ecef;
+    --ph-mosaic-text-primary: #212529;
+    --ph-mosaic-text-secondary: #6c757d;
+    --ph-mosaic-accent: #0d6efd;
+    --ph-mosaic-border: #dee2e6;
+    --ph-mosaic-highlight: #4f46e5;
+}
+
+/* Dark theme colors */
+[data-bs-theme=dark] {
+    --ph-mosaic-bg-dark: #1a1a1a;
+    --ph-mosaic-bg-medium: #2a2a2a;
+    --ph-mosaic-bg-light: #3a3a3a;
+    --ph-mosaic-text-primary: #ffffff;
+    --ph-mosaic-text-secondary: #cccccc;
+    --ph-mosaic-accent: #4a9eff;
+    --ph-mosaic-border: #444444;
+    --ph-mosaic-highlight: #4f46e5;
+
+    --ph-mosaic-bg-dark: #0f172a;
+    --ph-mosaic-bg-medium: #1e293b;
+    --ph-mosaic-bg-light: #334155;
+    --ph-mosaic-border: #334155;
+}
+
+.admin.com_phocamosaic.view-editor .subhead {
+    display: none;
+}
+
+.mosaic-studio {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    background-color: var(--ph-mosaic-bg-dark);
+    color: var(--ph-mosaic-text-primary);
+}
+
+.studio-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--ph-mosaic-bg-medium);
+    border-bottom: 1px solid var(--ph-mosaic-border);
+}
+
+.image-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 1.4em;
+    font-weight: bold;
+    padding: 1em;
+}
+.image-filename-path {
+    font-size: 80%;
+    color: var(--ph-mosaic-text-secondary);
+    background: var(--ph-mosaic-border);
+    padding: 0.25em 1em;
+    border-radius: 5px;
+    font-weight: normal;
+}
+
+.studio-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.studio-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--ph-mosaic-border);
+    cursor: pointer;
+    font-size: 14px;
+    background-color: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.studio-actions button:hover:not(:disabled) {
+    background-color: var(--ph-mosaic-accent);
+    color: #ffffff;
+}
+
+.studio-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.studio-workspace {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.tool-sidebar {
+    background-color: var(--ph-mosaic-bg-medium);
+    border-right: 1px solid var(--ph-mosaic-border);
+    overflow-y: auto;
+    padding: 0.75rem;
+}
+
+.filter-search {
+    width: 100%;
+    padding: 0.4rem;
+    margin-bottom: 0.75rem;
+    background-color: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.filter-search:focus {
+    outline: none;
+    border-color: var(--ph-mosaic-accent);
+}
+
+.tool-group {
+    margin-bottom: 1rem;
+}
+
+.tool-group h3 {
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--ph-mosaic-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tool-btn, .preset-btn {
+    width: 100%;
+    padding: 0.5rem 0.4rem;
+    margin-bottom: 0.35rem;
+    background-color: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 11px;
+}
+
+h3.tool-group-filter {
+    color: var(--ph-mosaic-highlight);
+}
+
+.tool-btn:hover, .preset-btn:hover {
+    background-color: var(--ph-mosaic-accent);
+    color: #ffffff;
+    border-color: var(--ph-mosaic-accent);
+}
+
+.tool-btn.active {
+    background-color: var(--ph-mosaic-accent);
+    color: #ffffff;
+    border-color: var(--ph-mosaic-accent);
+}
+
+.canvas-area {
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--ph-mosaic-bg-dark);
+    overflow: auto;
+    position: relative;
+}
+
+#image-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    /* Transparency checkerboard pattern - lighter colors */
+    background-image: 
+        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    background-color: #f5f5f5;
+}
+
+.tool-panel {
+    background-color: var(--ph-mosaic-bg-medium);
+    border-left: 1px solid var(--ph-mosaic-border);
+    padding: 0.75rem;
+    overflow-y: auto;
+}
+
+.tool-panel h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--ph-mosaic-text-primary);
+}
+
+.slider-control {
+    margin-bottom: 1rem;
+}
+
+.slider-control label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--ph-mosaic-text-secondary);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+}
+
+.slider-control input[type="range"] {
+    width: 100%;
+    height: 4px;
+    background: var(--ph-mosaic-border);
+    outline: none;
+    border-radius: 2px;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--ph-mosaic-accent);
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.slider-control input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--ph-mosaic-accent);
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+}
+
+.slider-value {
+    display: block;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--ph-mosaic-text-primary);
+    margin-top: 0.25rem;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--ph-mosaic-text-secondary);
+}
+
+.color-picker-control {
+    margin-bottom: 1.5rem;
+}
+
+.color-picker-control input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--ph-mosaic-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .studio-workspace {
+        grid-template-columns: 1fr;
+    }
+    
+    .tool-sidebar,
+    .tool-panel {
+        display: none;
+    }
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 300px;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+    pointer-events: all;
+    color: #ffffff;
+}
+
+.toast.success {
+    background-color: #28a745;
+}
+
+.toast.error {
+    background-color: #dc3545;
+}
+
+.toast.info {
+    background-color: #17a2b8;
+}
+
+.toast.warning {
+    background-color: #ffc107;
+    color: #000000;
+}
+
+.toast-icon {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Mosaic Dialog (renamed to avoid Joomla Bootstrap conflicts) */
+.mosaic-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.mosaic-dialog-box {
+    background: var(--ph-mosaic-bg-medium);
+    border-radius: 8px;
+    min-width: 400px;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    animation: scaleIn 0.2s ease-out;
+}
+
+.mosaic-dialog-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--ph-mosaic-border);
+}
+
+.mosaic-dialog-header h3 {
+    margin: 0;
+    color: var(--ph-mosaic-text-primary);
+    font-size: 1.1rem;
+}
+
+.mosaic-dialog-body {
+    padding: 1.5rem;
+    color: var(--ph-mosaic-text-primary);
+}
+
+.mosaic-dialog-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--ph-mosaic-border);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.mosaic-dialog-input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.mosaic-dialog-select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.mosaic-dialog-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--ph-mosaic-text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.mosaic-dialog-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.mosaic-dialog-btn-primary {
+    background: var(--ph-mosaic-accent);
+    color: #ffffff;
+}
+
+.mosaic-dialog-btn-primary:hover {
+    opacity: 0.9;
+}
+
+.mosaic-dialog-btn-secondary {
+    background: var(--ph-mosaic-bg-light);
+    color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
+}
+
+.mosaic-dialog-btn-secondary:hover {
+    background: var(--ph-mosaic-bg-dark);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <fieldset name="component" label="COM_PHOCAMOSAIC_CONFIGURATION">
+        <field
+            name="image_quality"
+            type="number"
+            label="COM_PHOCAMOSAIC_IMAGE_QUALITY"
+            description="COM_PHOCAMOSAIC_IMAGE_QUALITY_DESC"
+            default="90"
+            min="1"
+            max="100"
+            step="1"
+        />
+        
+        <field
+            name="max_dimension"
+            type="text"
+            label="COM_PHOCAMOSAIC_MAX_DIMENSION"
+            description="COM_PHOCAMOSAIC_MAX_DIMENSION_DESC"
+            default="4096"
+
+        />
+        
+        <field
+            name="preview_threshold"
+            type="text"
+            label="COM_PHOCAMOSAIC_PREVIEW_THRESHOLD"
+            description="COM_PHOCAMOSAIC_PREVIEW_THRESHOLD_DESC"
+            default="2048"
+        />
+        
+        <field
+            name="max_upload_size"
+            type="test"
+            label="COM_PHOCAMOSAIC_MAX_UPLOAD_SIZE"
+            description="COM_PHOCAMOSAIC_MAX_UPLOAD_SIZE_DESC"
+            default="5242880"
+        />
+        
+        <field
+            name="create_backup_on_edit"
+            type="radio"
+            label="COM_PHOCAMOSAIC_CREATE_BACKUP_ON_EDIT"
+            description="COM_PHOCAMOSAIC_CREATE_BACKUP_ON_EDIT_DESC"
+            layout="joomla.form.field.radio.switcher"
+            default="1"
+            class="btn-group btn-group-yesno"
+        >
+        <option value="0">JNO</option>    
+        <option value="1">JYES</option>
+            
+        </field>
+        
+        <field
+            name="storage_method"
+            type="list"
+            label="COM_PHOCAMOSAIC_STORAGE_METHOD"
+            description="COM_PHOCAMOSAIC_STORAGE_METHOD_DESC"
+            default="json"
+        >
+            <option value="json">JSON Sidecar Files</option>
+            <option value="database">Database</option>
+        </field>
+        
+        <field
+            name="preset_storage"
+            type="list"
+            label="COM_PHOCAMOSAIC_PRESET_STORAGE"
+            description="COM_PHOCAMOSAIC_PRESET_STORAGE_DESC"
+            default="localStorage"
+        >
+            <option value="localStorage">Browser LocalStorage</option>
+            <option value="database">Database (Shared)</option>
+        </field>
+    </fieldset>
+    
+    <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
+        <field
+            name="rules"
+            type="rules"
+            label="JCONFIG_PERMISSIONS_LABEL"
+            class="inputbox"
+            validate="rules"
+            filter="rules"
+            component="com_phocamosaic"
+            section="component"
+        />
+    </fieldset>
+</config>
