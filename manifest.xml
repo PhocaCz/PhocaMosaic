@@ -5,12 +5,12 @@
 		<description><![CDATA[ Phoca Mosaic is a powerful image editor for Joomla, featuring 7 essential editing functions and 45 creative filters. It includes a Preset system to save and reuse filter configurations across images. ]]></description>
 		<element>com_phocamosaic</element>
 		<type>component</type>
-		<version>6.0.0Alpha3</version>
-		<infourl title="Phoca Mosaic 6.0.0Alpha3">http://www.phoca.cz/version/index.php?phocamosaic=6.0.0Alpha3</infourl>
+		<version>6.0.0Alpha4</version>
+		<infourl title="Phoca Mosaic 6.0.0Alpha4">http://www.phoca.cz/version/index.php?phocamosaic=6.0.0Alpha4</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaMosaic/releases/download/6.0.0Alpha3/com_phocamosaic_v6.0.0Alpha3.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaMosaic/releases/download/6.0.0Alpha4/com_phocamosaic_v6.0.0Alpha4.zip</downloadurl>
 		</downloads>
-		<sha512>92611b7c0e5cc9847d200c5c9a4e1c5118d51c9501cf4765636e9182695b146d1095661109e90847c2fea4a1c11ecc0ecdc57af799cab694a9d4dd7e5d30e703</sha512>
+		<sha512>4a7face57d19d8c883b84405abdf1df583b433255b4aad64f8ed5322472abf7975b40dccd049b7b12678a7f74e5b7674829bb14b5adbac991d51c2e5c3a5f4d0</sha512>
 		<tags>
 			<tag>stable</tag>
 		</tags>

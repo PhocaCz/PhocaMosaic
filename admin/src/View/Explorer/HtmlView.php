@@ -54,7 +54,7 @@ class HtmlView extends BaseHtmlView
         // Register and use explorer JavaScript module
         $wa->registerAndUseScript(
             'com_phocamosaic.explorer',
-            Uri::root() . 'media/com_phocamosaic/js/explorer.mjs',
+            'media/com_phocamosaic/js/explorer.js',
             [],
             ['type' => 'module', 'defer' => true]
         );

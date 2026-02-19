@@ -76,7 +76,7 @@ $this->document->addScriptOptions('com_phocamosaic.translations', [
     'NO' => Text::_('JNO'),
     'IMAGE_SAVED' => Text::_('COM_PHOCAMOSAIC_IMAGE_SAVED'),
     'RELOADING' => Text::_('COM_PHOCAMOSAIC_RELOADING'),
-    'LOADING' => Text::_('JGLOBAL_LOADING'),
+    'LOADING' => Text::_('COM_PHOCAMOSAIC_LOADING'),
     'ENTER_FILENAME' => Text::_('COM_PHOCAMOSAIC_ENTER_FILENAME'),
     'ENTER_PRESET_NAME' => Text::_('COM_PHOCAMOSAIC_ENTER_PRESET_NAME'),
     'PRESET_SAVED' => Text::_('COM_PHOCAMOSAIC_PRESET_SAVED'),

@@ -48,7 +48,7 @@ $this->document->addScriptOptions('com_phocamosaic.upload', [
             <div id="image-grid-container" class="grid-container">
                 <div class="loading-indicator">
                     <span class="spinner-border" role="status"></span>
-                    <span><?php echo Text::_('JGLOBAL_LOADING'); ?></span>
+                    <span><?php echo Text::_('COM_PHOCAMOSAIC_LOADING'); ?></span>
                 </div>
             </div>
 
