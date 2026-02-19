@@ -7,7 +7,7 @@
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Alpha4</version>
+	<version>6.0.0Alpha5</version>
 	<description>COM_PHOCAMOSAIC_XML_DESCRIPTION</description>
 	<namespace path="src">Phoca\Component\PhocaMosaic</namespace>
 	<projectName>PhocaMosaic</projectName>
