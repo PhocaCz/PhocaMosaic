@@ -6,221 +6,11 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  */
 
-.mosaic-explorer {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 100px);
-    background-color: #1a1a1a;
-    color: #ffffff;
-}
+/* ==========================================================================
+ * Variables & Theming
+ * ========================================================================== */
 
-.explorer-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background-color: #2a2a2a;
-    border-bottom: 1px solid #444444;
-}
-
-.search-bar {
-    flex: 1;
-    max-width: 500px;
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 0.5rem 1rem;
-    background-color: #1a1a1a;
-    border: 1px solid #444444;
-    border-radius: 20px;
-    color: #ffffff;
-    font-size: 14px;
-}
-
-.search-bar input::placeholder {
-    color: #cccccc;
-}
-
-.filter-controls button {
-    background-color: #3a3a3a;
-    color: #ffffff;
-    border: 1px solid #444444;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.filter-controls button:hover {
-    background-color: #4a9eff;
-    border-color: #4a9eff;
-}
-
-.explorer-content {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    flex: 1;
-    overflow: hidden;
-}
-
-.folder-tree {
-    background-color: #2a2a2a;
-    border-right: 1px solid #444444;
-    overflow-y: auto;
-    padding: 1rem 0;
-}
-
-#folder-tree-container {
-    padding: 0;
-}
-
-.image-grid {
-    overflow-y: auto;
-    padding: 1.5rem;
-    background-color: #1a1a1a;
-}
-
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1.5rem;
-}
-
-.no-images {
-    text-align: center;
-    padding: 3rem;
-    color: #cccccc;
-    font-size: 1.1rem;
-}
-
-.image-card {
-    background-color: #2a2a2a;
-    border: 2px solid #444444;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.image-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-    border-color: #4a9eff;
-}
-
-.image-card img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
-    background-color: #1a1a1a;
-}
-
-.image-card-info {
-    padding: 0.75rem;
-}
-
-.image-card-filename {
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 0.5rem;
-    color: #ffffff;
-}
-
-.image-card-meta {
-    font-size: 0.75rem;
-    color: #cccccc;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.folder-item {
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0.25rem 0.5rem;
-    transition: all 0.15s ease;
-    color: #ffffff;
-    font-size: 14px;
-    user-select: none;
-}
-
-.folder-item:hover {
-    background-color: #3a3a3a;
-}
-
-.folder-item.active {
-    background-color: #4a9eff;
-    color: white;
-}
-
-.folder-item .icon-folder::before {
-    content: "📁";
-    font-size: 1.2rem;
-}
-
-.folder-item .badge {
-    margin-left: auto;
-    background-color: #1a1a1a;
-    padding: 0.2rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: #cccccc;
-}
-
-.folder-item.active .badge {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.loading-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 2rem;
-    color: #cccccc;
-}
-
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-    border: 0.25rem solid #444444;
-    border-right-color: #4a9eff;
-    border-radius: 50%;
-    animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-    to { transform: rotate(360deg); }
-}
-
-@media (max-width: 1024px) {
-    .explorer-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .folder-tree {
-        display: none;
-    }
-    
-    .grid-container {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
-}
-
-
-/* Light theme colors */
-[data-bs-theme=light] {
+:root, [data-bs-theme=light] {
     --ph-mosaic-bg-dark: #f8f9fa;
     --ph-mosaic-bg-medium: #ffffff;
     --ph-mosaic-bg-light: #e9ecef;
@@ -231,23 +21,20 @@
     --ph-mosaic-highlight: #4f46e5;
 }
 
-/* Dark theme colors */
 [data-bs-theme=dark] {
-    --ph-mosaic-bg-dark: #1a1a1a;
-    --ph-mosaic-bg-medium: #2a2a2a;
-    --ph-mosaic-bg-light: #3a3a3a;
-    --ph-mosaic-text-primary: #ffffff;
-    --ph-mosaic-text-secondary: #cccccc;
-    --ph-mosaic-accent: #4a9eff;
-    --ph-mosaic-border: #444444;
-    --ph-mosaic-highlight: #4f46e5;
-
     --ph-mosaic-bg-dark: #0f172a;
     --ph-mosaic-bg-medium: #1e293b;
     --ph-mosaic-bg-light: #334155;
+    --ph-mosaic-text-primary: #ffffff;
+    --ph-mosaic-text-secondary: #cccccc;
+    --ph-mosaic-accent: #4a9eff;
     --ph-mosaic-border: #334155;
+    --ph-mosaic-highlight: #4f46e5;
 }
 
+/* ==========================================================================
+ * Base Layout
+ * ========================================================================== */
 
 .mosaic-explorer {
     display: flex;
@@ -287,6 +74,48 @@
     color: var(--ph-mosaic-text-secondary);
 }
 
+.mosaic-breadcrumb-bar {
+    flex: 1;
+}
+
+.mosaic-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    margin-bottom: 0;
+    list-style: none;
+    background-color: transparent;
+}
+
+.mosaic-breadcrumb-item {
+    display: flex;
+    align-items: center;
+    color: var(--ph-mosaic-text-secondary);
+    font-size: 14px;
+    list-style-type: none;
+}
+
+.mosaic-breadcrumb-item + .mosaic-breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: var(--ph-mosaic-text-secondary);
+}
+
+.mosaic-breadcrumb-item a {
+    color: var(--ph-mosaic-accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.mosaic-breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.mosaic-breadcrumb-item.active {
+    color: var(--ph-mosaic-text-primary);
+    font-weight: 500;
+}
+
 .filter-controls button {
     background-color: var(--ph-mosaic-bg-light);
     color: var(--ph-mosaic-text-primary);
@@ -310,12 +139,75 @@
     overflow: hidden;
 }
 
+/* ==========================================================================
+ * Folder Tree Sidebar
+ * ========================================================================== */
+
 .folder-tree {
     background-color: var(--ph-mosaic-bg-medium);
     border-right: 1px solid var(--ph-mosaic-border);
     overflow-y: auto;
     padding: 1rem 0;
 }
+
+#folder-tree-container {
+padding: 0;
+}
+
+.folder-item {
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.25rem 0.5rem;
+    transition: all 0.15s ease;
+    color: var(--ph-mosaic-text-primary);
+    font-size: 14px;
+    user-select: none;
+}
+
+.folder-item:hover {
+    background-color: var(--ph-mosaic-bg-light);
+}
+
+.folder-item.active {
+    background-color: var(--ph-mosaic-accent);
+    color: #ffffff;
+}
+
+/* Icon visibility fix */
+.folder-item .icon-folder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+}
+
+.folder-item .icon-folder::before {
+    content: "📁" !important;
+    font-size: 1.2rem;
+    display: inline-block;
+}
+
+.folder-item .badge {
+    margin-left: auto;
+    background-color: var(--ph-mosaic-bg-dark);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--ph-mosaic-highlight);
+}
+
+.folder-item.active .badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+ * Image Grid & Cards
+ * ========================================================================== */
 
 .image-grid {
     overflow-y: auto;
@@ -325,7 +217,7 @@
 
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1.5rem;
 }
 
@@ -343,6 +235,7 @@
     overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .image-card:hover {
@@ -356,12 +249,11 @@
     height: 200px;
     object-fit: cover;
     display: block;
-    /* Transparency checkerboard pattern - lighter colors */
-    background-image: 
-        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+    background-image:
+    linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     background-color: #f5f5f5;
@@ -389,134 +281,7 @@
     gap: 0.5rem;
 }
 
-.folder-item {
-    padding: 0.25rem;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0.25rem 0.5rem;
-    transition: all 0.15s ease;
-    color: var(--ph-mosaic-text-primary);
-    font-size: 14px;
-    user-select: none;
-}
-
-.folder-item:hover {
-    background-color: var(--ph-mosaic-bg-light);
-}
-
-.folder-item.active {
-    background-color: var(--ph-mosaic-accent);
-    color: #ffffff;
-}
-
-.folder-item .icon-folder::before {
-    content: "📁";
-    font-size: 1.2rem;
-}
-
-.folder-item .badge {
-    margin-left: auto;
-    background-color: var(--ph-mosaic-bg-dark);
-    padding: 0.2rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: var(--ph-mosaic-text-secondary);
-}
-
-.folder-item .badge {
-    color: var(--ph-mosaic-highlight);
-}
-
-.folder-item.active .badge {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
-
-.loading-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 2rem;
-    color: var(--ph-mosaic-text-secondary);
-}
-
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-    border: 0.25rem solid var(--ph-mosaic-border);
-    border-right-color: var(--ph-mosaic-accent);
-    border-radius: 50%;
-    animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-    to { transform: rotate(360deg); }
-}
-
-/* Upload Drop Zone */
-.upload-drop-zone {
-    border: 3px dashed var(--ph-mosaic-border);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    margin-top: 2rem;
-    background-color: var(--ph-mosaic-bg-medium);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.upload-drop-zone:hover {
-    border-color: var(--ph-mosaic-accent);
-    background-color: var(--ph-mosaic-bg-light);
-}
-
-.upload-drop-zone.drag-over {
-    border-color: var(--ph-mosaic-accent);
-    background-color: var(--ph-mosaic-accent);
-    opacity: 0.1;
-    transform: scale(1.02);
-}
-
-.upload-drop-content {
-    text-align: center;
-    color: var(--ph-mosaic-text-primary);
-}
-
-.upload-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.7;
-}
-
-.upload-drop-content h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    color: var(--ph-mosaic-text-primary);
-}
-
-.upload-drop-content p {
-    margin: 0.5rem 0;
-    color: var(--ph-mosaic-text-secondary);
-}
-
-.upload-hint {
-    font-size: 0.875rem;
-    margin-top: 1rem !important;
-}
-
-#select-files-btn {
-margin: 1rem 0;
-}
-
-/* Image Card Actions Overlay */
-.image-card {
-    position: relative;
-}
-
+/* Image Card Actions */
 .phoca-image-actions {
     position: absolute;
     top: 8px;
@@ -559,6 +324,14 @@ margin: 1rem 0;
     border-color: #dc3545;
 }
 
+.phoca-action-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #fff;
+    fill: #fff;
+    stroke: #fff;
+}
+
 /* Info Tooltip */
 .phoca-image-info-tooltip {
     position: absolute;
@@ -590,19 +363,48 @@ margin: 1rem 0;
 }
 
 /* Mobile - Always show actions */
-@media (max-width: 768px) {
+@media (pointer: coarse) {
     .phoca-image-actions {
         opacity: 1;
     }
     
     .phoca-action-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
+        width: 44px; /* Larger tap targets are better for fingers */
+        height: 44px;
+        font-size: 20px;
     }
 }
 
-/* Mosaic Dialog (Modal System) */
+/* ==========================================================================
+ * Components (Upload, Dialogs, Dashboard)
+ * ========================================================================== */
+
+.upload-drop-zone {
+    border: 3px dashed var(--ph-mosaic-border);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    margin-top: 2rem;
+    background-color: var(--ph-mosaic-bg-medium);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-drop-zone:hover {
+    border-color: var(--ph-mosaic-accent);
+    background-color: var(--ph-mosaic-bg-light);
+}
+
+.upload-drop-content {
+    text-align: center;
+    color: var(--ph-mosaic-text-primary);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
 .mosaic-dialog-overlay {
     position: fixed;
     top: 0;
@@ -650,7 +452,8 @@ margin: 1rem 0;
     justify-content: flex-end;
 }
 
-.mosaic-dialog-input {
+.mosaic-dialog-input,
+.mosaic-dialog-select {
     width: 100%;
     padding: 0.5rem;
     margin-bottom: 1rem;
@@ -690,40 +493,137 @@ margin: 1rem 0;
 .mosaic-dialog-btn-secondary {
     background: var(--ph-mosaic-bg-light);
     color: var(--ph-mosaic-text-primary);
+    border: 1px solid var(--ph-mosaic-border);
 }
 
 .mosaic-dialog-btn-secondary:hover {
     background: var(--ph-mosaic-bg-dark);
 }
 
-.mosaic-dialog-btn-danger {
-    background: #dc3545;
-    color: #ffffff;
+/* ==========================================================================
+ * Media Queries & Overlay Fixes
+ * ========================================================================== */
+
+/* Tablet & Smaller Desktop */
+@media (max-width: 1024px) {
+    .explorer-content {
+        grid-template-columns: 1fr;
+    }
+
+    .folder-tree {
+        display: none;
+    }
+
+    .folder-tree.mobile-open {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        z-index: 10001; /* Above Joomla and Overlay */
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
+        background-color: var(--ph-mosaic-bg-medium);
+        overflow-y: auto;
+    }
+
+    .mobile-folder-toggle {
+        display: flex;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--ph-mosaic-accent);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-size: 24px;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    .folder-tree-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10000; /* Above Joomla */
+    }
+
+    .folder-tree-overlay.active {
+        display: block;
+    }
 }
 
-.mosaic-dialog-btn-danger:hover {
-    background: #c82333;
+@media (min-width: 1025px) {
+    .mobile-folder-toggle {
+        display: none;
+    }
 }
 
-.mosaic-dialog-error {
-    color: #dc3545;
-    font-size: 13px;
-    margin-top: 0.5rem;
-    display: none;
+/* Mobile Devices */
+@media (max-width: 768px) {
+    .mosaic-explorer {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .explorer-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .search-bar {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .mosaic-dialog-box {
+        width: 90%;
+        max-width: 90%;
+    }
+
+    .mosaic-dialog-footer {
+        flex-direction: column;
+    }
+
+    .mosaic-dialog-btn {
+        width: 100%;
+    }
+
+    .phoca-image-actions {
+        opacity: 1;
+    }
 }
 
-.mosaic-dialog-info {
-    color: #6c757d;
-    font-size: 13px;
-    margin-top: 0.5rem;
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .folder-item {
+        font-size: 13px;
+        padding: 0.5rem;
+    }
 }
 
-.mosaic-dialog-warning {
-    color: #ffc107;
-    font-size: 14px;
-    margin: 0.5rem 0;
-}
-
+/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -734,16 +634,9 @@ margin: 1rem 0;
     to { transform: scale(1); opacity: 1; }
 }
 
-.ph-dashboard-sidebar {
-    border: 1px solid var(--ph-mosaic-border);
-    border-radius: 8px;
-    padding: 1em;
-    margin-top: 2em;
-}
-
 .ph-logo-product {
+    width: 30vw;
+    height: auto;
     margin-top: 1em;
     margin-bottom: 1em;
-    height: 5em;
-    width: auto;
 }

@@ -6,6 +6,106 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  */
 
+/**
+ * Filter configuration system for advanced controls
+ * Defines control types, parameters, and interactive features for each filter
+ */
+const FILTER_CONFIGS = {
+    'Tint': {
+        controls: [
+            { type: 'color', name: 'tintColor', label: 'TINT_COLOR', default: '#ff8800' }
+        ]
+    },
+    'Soft Focus': {
+        controls: [
+            { type: 'range', name: 'focalSize', label: 'FOCAL_SIZE', min: 50, max: 500, default: 200 }
+        ],
+        interactive: 'focalPoint'
+    },
+    'Filtered B&W': {
+        controls: [
+            { type: 'color', name: 'filterColor', label: 'FILTER_COLOR', default: '#ff0000' }
+        ]
+    },
+    'Focal B&W': {
+        controls: [
+            { type: 'range', name: 'focalSize', label: 'FOCAL_SIZE', min: 50, max: 500, default: 200 }
+        ],
+        interactive: 'focalPoint'
+    },
+    'Graduated Tint': {
+        controls: [
+            { type: 'color', name: 'tintColor', label: 'TINT_COLOR', default: '#ffc864' },
+            { type: 'range', name: 'feather', label: 'FEATHER', min: 0, max: 100, default: 50 },
+            { type: 'range', name: 'shade', label: 'SHADE', min: 0, max: 100, default: 50 }
+        ],
+        interactive: 'gradientLine'
+    },
+    'Lomo-ish': {
+        controls: [
+            { type: 'range', name: 'blurEdges', label: 'BLUR_EDGES', min: 0, max: 100, default: 50 }
+        ]
+    },
+    'Holga-ish': {
+        controls: [
+            { type: 'range', name: 'blurEdges', label: 'BLUR_EDGES', min: 0, max: 100, default: 50 },
+            { type: 'range', name: 'grain', label: 'GRAIN', min: 0, max: 100, default: 50 }
+        ]
+    },
+    'HDR-ish': {
+        controls: [
+            { type: 'range', name: 'radius', label: 'RADIUS', min: 1, max: 20, default: 5 },
+            { type: 'range', name: 'strength', label: 'STRENGTH', min: 0, max: 100, default: 50 }
+        ]
+    },
+    'Orton-ish': {
+        controls: [
+            { type: 'range', name: 'bloom', label: 'BLOOM', min: 0, max: 100, default: 50 },
+            { type: 'range', name: 'brightness', label: 'BRIGHTNESS', min: 0, max: 100, default: 50 }
+        ]
+    },
+    'Duo Tone': {
+        controls: [
+            { type: 'color', name: 'shadowColor', label: 'SHADOW_COLOR', default: '#2c3e50' },
+            { type: 'color', name: 'highlightColor', label: 'HIGHLIGHT_COLOR', default: '#f39c12' },
+            { type: 'range', name: 'brightness', label: 'BRIGHTNESS', min: -50, max: 50, default: 0 },
+            { type: 'range', name: 'contrast', label: 'CONTRAST', min: -50, max: 50, default: 0 }
+        ]
+    },
+    'Vignette': {
+        controls: [
+            { type: 'range', name: 'size', label: 'SIZE', min: 0, max: 100, default: 50 },
+            { type: 'range', name: 'strength', label: 'STRENGTH', min: 0, max: 100, default: 50 },
+            { type: 'color', name: 'vignetteColor', label: 'VIGNETTE_COLOR', default: '#000000' }
+        ]
+    },
+    'Focal Zoom': {
+        controls: [
+            { type: 'range', name: 'zoominess', label: 'ZOOMINESS', min: 0, max: 100, default: 50 },
+            { type: 'range', name: 'focalSize', label: 'FOCAL_SIZE', min: 50, max: 500, default: 200 },
+            { type: 'range', name: 'edgeHardness', label: 'EDGE_HARDNESS', min: 0, max: 100, default: 50 }
+        ],
+        interactive: 'focalPoint'
+    },
+    'Pencil Sketch': {
+        controls: [
+            { type: 'range', name: 'radius', label: 'RADIUS', min: 1, max: 10, default: 3 },
+            { type: 'range', name: 'strength', label: 'STRENGTH', min: 0, max: 100, default: 50 }
+        ]
+    },
+    'Neon': {
+        controls: [
+            { type: 'color', name: 'neonColor', label: 'NEON_COLOR', default: '#ff0000' }
+        ]
+    },
+    'Comic Book': {
+        controls: [
+            { type: 'range', name: 'colorBrush', label: 'COLOR_BRUSH', min: 2, max: 16, default: 8 },
+            { type: 'range', name: 'dotDensity', label: 'DOT_DENSITY', min: 1, max: 10, default: 4 }
+        ]
+    }
+};
+
 class EnhancedMosaicEditor {
     constructor() {
         this.canvas = document.getElementById('image-canvas');
@@ -38,15 +138,40 @@ class EnhancedMosaicEditor {
         // Active filters
         this.activeFilters = [];
         
+        /**
+         * Current filter parameters object
+         * Stores all parameter values for the currently selected filter
+         * Structure varies by filter - see FILTER_CONFIGS for parameter definitions
+         * @type {Object}
+         */
+        this.currentFilterParams = {};
+        
         // Initialize
         this.init();
     }
 
     async init() {
+        // Debug: Check for global r, g, b variables that might interfere with color picker
+        /*console.log('Global variables check:', {
+            r: typeof window.r !== 'undefined' ? window.r : 'undefined',
+            g: typeof window.g !== 'undefined' ? window.g : 'undefined',
+            b: typeof window.b !== 'undefined' ? window.b : 'undefined'
+        });*/
+        
+        // Clean up any global r, g, b variables
+        try {
+            delete window.r;
+            delete window.g;
+            delete window.b;
+        } catch (e) {
+            console.warn('Could not delete global variables:', e);
+        }
+        
         await this.loadImage();
         this.attachEventListeners();
         this.updateHistoryButtons();
         this.createToastContainer();
+        this.attachMobileToggleListeners();
     }
     
     // Translation helper
@@ -358,6 +483,9 @@ class EnhancedMosaicEditor {
         // Clear current tool
         this.currentTool = null;
         
+        // Disable focal point interaction
+        this.disableFocalPointInteraction();
+        
         // Remove active class from all tool buttons
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -386,7 +514,17 @@ class EnhancedMosaicEditor {
             const pathParts = this.imagePath.split('/');
             pathParts.pop(); // Remove filename
             const folder = pathParts.join('/') || 'images';
-            window.location.href = `index.php?option=com_phocamosaic&view=explorer&folder=${encodeURIComponent(folder)}`;
+            
+            // Preserve tmpl and e_name parameters if we're in component mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const tmpl = urlParams.get('tmpl');
+            const eName = urlParams.get('e_name');
+            
+            let extraParams = '';
+            if (tmpl) extraParams += `&tmpl=${tmpl}`;
+            if (eName) extraParams += `&e_name=${eName}`;
+            
+            window.location.href = `index.php?option=com_phocamosaic&view=explorer&folder=${encodeURIComponent(folder)}${extraParams}`;
         });
         
         // Filter search
@@ -431,6 +569,43 @@ class EnhancedMosaicEditor {
         });
     }
 
+    attachMobileToggleListeners() {
+        // Mobile filter toggle (left sidebar)
+        const mobileFilterToggle = document.getElementById('mobile-filter-toggle');
+        const toolSidebar = document.getElementById('tool-sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        
+        // Mobile tool toggle (right panel)
+        const mobileToolToggle = document.getElementById('mobile-tool-toggle');
+        const toolPanel = document.querySelector('.tool-panel');
+        
+        if (mobileFilterToggle && toolSidebar) {
+            mobileFilterToggle.addEventListener('click', () => {
+                toolSidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                // Close tool panel if open
+                toolPanel.classList.remove('mobile-open');
+            });
+        }
+        
+        if (mobileToolToggle && toolPanel) {
+            mobileToolToggle.addEventListener('click', () => {
+                toolPanel.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                // Close filter sidebar if open
+                toolSidebar.classList.remove('mobile-open');
+            });
+        }
+        
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                toolSidebar.classList.remove('mobile-open');
+                toolPanel.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+            });
+        }
+    }
+
     filterSearch(query) {
         const tools = document.querySelectorAll('.tool-btn');
         const lowerQuery = query.toLowerCase();
@@ -463,6 +638,26 @@ class EnhancedMosaicEditor {
         });
         document.querySelector(`[data-filter="${filterName}"]`)?.classList.add('active');
         
+        // Get filter configuration
+        const config = FILTER_CONFIGS[filterName];
+        
+        // Initialize currentFilterParams with default values
+        this.currentFilterParams = {};
+        if (config && config.controls) {
+            for (const control of config.controls) {
+                this.currentFilterParams[control.name] = control.default;
+            }
+        }
+        
+        // Initialize interactive control positions if applicable
+        if (config && config.interactive === 'focalPoint') {
+            this.currentFilterParams.focalX = this.canvas.width / 2;
+            this.currentFilterParams.focalY = this.canvas.height / 2;
+        } else if (config && config.interactive === 'gradientLine') {
+            this.currentFilterParams.gradientY = this.canvas.height / 2;
+            this.currentFilterParams.gradientAngle = 0;
+        }
+        
         // Determine slider range based on filter type
         let minValue = -100;
         let maxValue = 100;
@@ -475,39 +670,163 @@ class EnhancedMosaicEditor {
             defaultValue = 100; // Full effect immediately
         }
         
-        // Get translated filter name
-        const translatedFilterName = this.getFilterTranslation(filterName);
-        
-        // Show intensity slider with Apply button
+        // Show controls using buildFilterControlsHTML
         const panel = document.querySelector('.tool-panel');
         if (panel) {
-            panel.innerHTML = `
-                <h3>${translatedFilterName}</h3>
-                <div class="slider-control">
-                    <label>${this.t('COM_PHOCAMOSAIC_INTENSITY', 'Intensity')}</label>
-                    <input type="range" id="filter-intensity" min="${minValue}" max="${maxValue}" value="${defaultValue}">
-                    <span class="slider-value">${defaultValue}</span>
-                </div>
-                <button type="button" id="apply-filter" class="mosaic-dialog-btn mosaic-dialog-btn-primary" style="width: 100%; margin-top: 1rem;">${this.t('COM_PHOCAMOSAIC_APPLY', 'Apply')}</button>
-                <button type="button" id="cancel-filter" class="mosaic-dialog-btn mosaic-dialog-btn-secondary" style="width: 100%; margin-top: 0.5rem;">${this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel')}</button>
-            `;
+            // Clean up any global r, g, b variables that might interfere with browser's color picker
+            try {
+                delete window.r;
+                delete window.g;
+                delete window.b;
+            } catch (e) {
+                // Ignore errors if variables don't exist or can't be deleted
+            }
             
+            panel.innerHTML = this.buildFilterControlsHTML(filterName, config, minValue, maxValue, defaultValue);
+            
+            // Color Picker - Bug in Chrome
+            // Explicitly set color picker values via JavaScript to ensure browser initializes them correctly
+            if (config && config.controls) {
+                for (const control of config.controls) {
+                    if (control.type === 'color') {
+                        const colorInput = document.getElementById(`filter-${control.name}`);
+                        if (colorInput) {
+                            /*console.log('Setting color picker:', {
+                                id: `filter-${control.name}`,
+                                defaultValue: control.default,
+                                currentValue: colorInput.value
+                            });*/
+                            
+                            // Recreate the input element to force browser to reinitialize
+                            const parent = colorInput.parentNode;
+                            const newInput = document.createElement('input');
+                            newInput.type = 'color';
+                            newInput.id = colorInput.id;
+                            newInput.className = colorInput.className;
+                            newInput.style.cssText = colorInput.style.cssText;
+                            
+                            // Set value using both setAttribute and property
+                            newInput.setAttribute('value', control.default);
+                            newInput.value = control.default;
+                            
+                            // Watch for value changes using MutationObserver
+                            const observer = new MutationObserver((mutations) => {
+                                mutations.forEach((mutation) => {
+                                    if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                                        const newValue = newInput.value;
+                                        //console.log('MutationObserver detected value change:', newValue);
+                                        
+                                        // Trigger change event manually
+                                        newInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                });
+                            });
+                            
+                            observer.observe(newInput, {
+                                attributes: true,
+                                attributeFilter: ['value']
+                            });
+                            
+                            parent.replaceChild(newInput, colorInput);
+                            
+                            /*console.log('After recreating:', {
+                                value: newInput.value,
+                                getAttribute: newInput.getAttribute('value')
+                            });*/
+                            
+                            // Add eyedropper button functionality
+                            const eyedropperBtn = document.getElementById(`eyedropper-${control.name}`);
+                            if (eyedropperBtn) {
+                                eyedropperBtn.addEventListener('click', async () => {
+                                    if (!window.EyeDropper) {
+                                        this.showToast('EyeDropper API not supported in this browser', 'error');
+                                        return;
+                                    }
+                                    
+                                    try {
+                                        const eyeDropper = new EyeDropper();
+                                        const result = await eyeDropper.open();
+                                        
+                                        //console.log('EyeDropper result:', result.sRGBHex);
+                                        
+                                        let colorValue = result.sRGBHex;
+                                        
+                                        // Check if the result is in rgba format (some browsers return this)
+                                        if (colorValue && (colorValue.startsWith('rgba') || colorValue.startsWith('rgb'))) {
+                                            //console.log('Converting rgba to hex:', colorValue);
+                                            
+                                            // Parse rgba/rgb values
+                                            const match = colorValue.match(/rgba?\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,)]+)(?:\s*,\s*[\d.]+)?\s*\)/);
+                                            if (match) {
+                                                let r = match[1].trim();
+                                                let g = match[2].trim();
+                                                let b = match[3].trim();
+                                                
+                                                // Convert to numbers
+                                                r = parseInt(r, 10);
+                                                g = parseInt(g, 10);
+                                                b = parseInt(b, 10);
+                                                
+                                                //console.log('Parsed RGB:', { r, g, b });
+                                                
+                                                // Convert to hex
+                                                const toHex = (n) => {
+                                                    const hex = Math.max(0, Math.min(255, n)).toString(16);
+                                                    return hex.length === 1 ? '0' + hex : hex;
+                                                };
+                                                
+                                                colorValue = '#' + toHex(r) + toHex(g) + toHex(b);
+                                                //console.log('Converted to hex:', colorValue);
+                                            }
+                                        }
+                                        
+                                        // Get the color input element again (it might have been recreated)
+                                        const colorInput = document.getElementById(`filter-${control.name}`);
+                                        if (colorInput) {
+                                            // Set the color in the input
+                                            colorInput.value = colorValue;
+                                            
+                                            // Update the filter params
+                                            this.currentFilterParams[control.name] = colorValue;
+                                            
+                                            // Apply filter immediately
+                                            const intensity = parseInt(document.getElementById('filter-intensity')?.value || 0);
+                                            this.applyCurrentFilter(intensity);
+                                            
+                                            this.showToast('Color picked: ' + colorValue, 'success');
+                                        }
+                                    } catch (err) {
+                                        console.log('EyeDropper cancelled or failed:', err);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Attach event listener for intensity slider
             document.getElementById('filter-intensity').addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
                 document.querySelector('.slider-value').textContent = `${value}`;
                 this.applyCurrentFilter(value);
             });
             
+            // Attach event listeners for filter-specific controls (MUST be after recreation)
+            this.attachControlEventListeners(config);
+            
             // Apply the filter with default value immediately for preview
             this.applyCurrentFilter(defaultValue);
             
+            // Apply button handler
             document.getElementById('apply-filter').addEventListener('click', () => {
                 const intensity = parseInt(document.getElementById('filter-intensity').value);
                 if (intensity !== 0) {
-                    // Add filter to activeFilters array for preset tracking
+                    // Add filter to activeFilters array with parameters
                     this.activeFilters.push({
                         name: filterName,
-                        intensity: intensity
+                        intensity: intensity,
+                        params: { ...this.currentFilterParams }
                     });
                     
                     // Commit the filter to history
@@ -517,6 +836,7 @@ class EnhancedMosaicEditor {
                 this.clearCurrentTool();
             });
             
+            // Cancel button handler
             document.getElementById('cancel-filter').addEventListener('click', () => {
                 // Restore to last history state
                 if (this.historyIndex >= 0) {
@@ -527,6 +847,328 @@ class EnhancedMosaicEditor {
                 }
                 this.clearCurrentTool();
             });
+        }
+    }
+
+    /**
+     * Build HTML for a color picker control
+     * @param {Object} control - Control configuration object
+     * @returns {string} HTML string for color picker
+     */
+    buildColorPicker(control) {
+        const label = this.t(control.label, control.label);
+        return `
+            <div class="control-group" style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem;">${label}</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="color" 
+                           id="filter-${control.name}" 
+                           value="${control.default}"
+                           class="filter-color-picker"
+                           style="flex: 1; height: 40px; cursor: pointer;">
+                    <button type="button" 
+                            id="eyedropper-${control.name}"
+                            class="eyedropper-btn"
+                            style="height: 40px; width: 40px; background: var(--mosaic-bg-medium); border: 1px solid var(--mosaic-border); border-radius: 4px; cursor: pointer; color: var(--mosaic-text-primary); font-size: 20px; display: flex; align-items: center; justify-content: center;"
+                            title="Pick color from screen">
+                        💧
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Build HTML for a range input control
+     * @param {Object} control - Control configuration object
+     * @returns {string} HTML string for range input
+     */
+    buildRangeInput(control) {
+        const label = this.t(control.label, control.label);
+        return `
+            <div class="slider-control" style="margin-bottom: 1rem;">
+                <label>${label}</label>
+                <input type="range" 
+                       id="filter-${control.name}" 
+                       min="${control.min}" 
+                       max="${control.max}" 
+                       value="${control.default}">
+                <span class="slider-value">${control.default}</span>
+            </div>
+        `;
+    }
+
+    /**
+     * Build complete HTML for filter controls
+     * @param {string} filterName - Name of the filter
+     * @param {Object} config - Filter configuration from FILTER_CONFIGS
+     * @param {number} minValue - Minimum intensity value
+     * @param {number} maxValue - Maximum intensity value
+     * @param {number} defaultValue - Default intensity value
+     * @returns {string} Complete HTML string for filter controls
+     */
+    buildFilterControlsHTML(filterName, config, minValue, maxValue, defaultValue) {
+        const translatedFilterName = this.getFilterTranslation(filterName);
+        
+        let html = `<h3>${translatedFilterName}</h3>`;
+        
+        // Always include intensity slider
+        html += `
+            <div class="slider-control">
+                <label>${this.t('COM_PHOCAMOSAIC_INTENSITY', 'Intensity')}</label>
+                <input type="range" id="filter-intensity" min="${minValue}" max="${maxValue}" value="${defaultValue}">
+                <span class="slider-value">${defaultValue}</span>
+            </div>
+        `;
+        
+        // Add filter-specific controls if configuration exists
+        if (config && config.controls) {
+            for (const control of config.controls) {
+                if (control.type === 'color') {
+                    html += this.buildColorPicker(control);
+                } else if (control.type === 'range') {
+                    html += this.buildRangeInput(control);
+                }
+            }
+        }
+        
+        // Add Apply and Cancel buttons
+        html += `
+            <button type="button" id="apply-filter" class="mosaic-dialog-btn mosaic-dialog-btn-primary" style="width: 100%; margin-top: 1rem;">${this.t('COM_PHOCAMOSAIC_APPLY', 'Apply')}</button>
+            <button type="button" id="cancel-filter" class="mosaic-dialog-btn mosaic-dialog-btn-secondary" style="width: 100%; margin-top: 0.5rem;">${this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel')}</button>
+        `;
+        
+        return html;
+    }
+
+    /**
+     * Attach event listeners to filter-specific controls
+     * @param {Object} config - Filter configuration from FILTER_CONFIGS
+     */
+    attachControlEventListeners(config) {
+        if (!config || !config.controls) return;
+        
+        for (const control of config.controls) {
+            const element = document.getElementById(`filter-${control.name}`);
+            if (!element) continue;
+            
+            if (control.type === 'color') {
+                const element = document.getElementById(`filter-${control.name}`);
+                
+                // Debug: Listen to ALL events to see what the eyedropper sends
+                ['input', 'change', 'blur', 'focus', 'click', 'mouseup', 'mousedown'].forEach(eventType => {
+                    element.addEventListener(eventType, (e) => {
+                      /*  console.log(`Event ${eventType}:`, {
+                            value: e.target.value,
+                            computedValue: window.getComputedStyle(e.target).getPropertyValue('color')
+                        });*/
+                    });
+                });
+                
+                // For color pickers, handle both input and change events
+                const handleColorChange = (e) => {
+                    let colorValue = e.target.value;
+                    
+                  /*  console.log('Color picker event:', {
+                        eventType: e.type,
+                        controlName: control.name,
+                        rawValue: colorValue,
+                        type: typeof colorValue
+                    });*/
+                    
+                    // Check if value is in rgba format (from eyedropper)
+                    if (colorValue && (colorValue.startsWith('rgba') || colorValue.startsWith('rgb'))) {
+                        //console.log('Converting rgba/rgb to hex:', colorValue);
+                        
+                        // Parse rgba/rgb values - handle NaN in the string
+                        const match = colorValue.match(/rgba?\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,)]+)(?:\s*,\s*[\d.]+)?\s*\)/);
+                        if (match) {
+                            let r = match[1].trim();
+                            let g = match[2].trim();
+                            let b = match[3].trim();
+                            
+                            //console.log('Parsed RGB strings:', { r, g, b });
+                            
+                            // Convert to numbers, replacing NaN with 0
+                            r = r === 'NaN' || isNaN(parseInt(r, 10)) ? 0 : parseInt(r, 10);
+                            g = g === 'NaN' || isNaN(parseInt(g, 10)) ? 0 : parseInt(g, 10);
+                            b = b === 'NaN' || isNaN(parseInt(b, 10)) ? 0 : parseInt(b, 10);
+                            
+                            //console.log('Parsed RGB numbers:', { r, g, b });
+                            
+                            // Convert to hex
+                            const toHex = (n) => {
+                                const hex = Math.max(0, Math.min(255, n)).toString(16);
+                                return hex.length === 1 ? '0' + hex : hex;
+                            };
+                            
+                            colorValue = '#' + toHex(r) + toHex(g) + toHex(b);
+                            
+                            //console.log('Converted to hex:', colorValue);
+                            
+                            // Update the input element with hex value
+                            e.target.value = colorValue;
+                        } else {
+                            console.error('Failed to match rgba pattern:', colorValue);
+                            return;
+                        }
+                    }
+                    
+                    // Validate color value - must be hex format
+                    if (!colorValue || !colorValue.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        console.warn('Invalid color value received:', colorValue);
+                        // Invalid color, don't update or apply filter
+                        return;
+                    }
+                    
+                    // Valid color - update params and apply
+                    this.currentFilterParams[control.name] = colorValue;
+                    
+                    //console.log('Color accepted:', colorValue, 'currentFilterParams:', this.currentFilterParams);
+                    
+                    // Apply filter with current intensity for real-time preview
+                    const intensity = parseInt(document.getElementById('filter-intensity')?.value || 0);
+                    this.applyCurrentFilter(intensity);
+                };
+                
+                // Listen to both input and change events
+                element.addEventListener('input', handleColorChange);
+                element.addEventListener('change', handleColorChange);
+                
+            } else if (control.type === 'range') {
+                element.addEventListener('input', (e) => {
+                    this.currentFilterParams[control.name] = parseFloat(e.target.value);
+                    // Update value display for range inputs
+                    const valueDisplay = e.target.nextElementSibling;
+                    if (valueDisplay && valueDisplay.classList.contains('slider-value')) {
+                        valueDisplay.textContent = e.target.value;
+                    }
+                    
+                    // Apply filter with current intensity for real-time preview
+                    const intensity = parseInt(document.getElementById('filter-intensity')?.value || 0);
+                    this.applyCurrentFilter(intensity);
+                });
+            }
+        }
+        
+        // Enable focal point interaction if filter supports it
+        if (config && config.interactive === 'focalPoint') {
+            this.enableFocalPointInteraction();
+        }
+    }
+
+    /**
+     * Enable interactive focal point selection on canvas
+     * User can click on canvas to set the focal point for filters
+     */
+    enableFocalPointInteraction() {
+        // Remove any existing focal point listeners
+        this.disableFocalPointInteraction();
+        
+        // Create focal point indicator (shows the affected area)
+        const indicator = document.createElement('div');
+        indicator.id = 'focal-point-indicator';
+        indicator.style.cssText = `
+            position: absolute;
+            border: 2px solid #4a9eff;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+            background-color: rgba(74, 158, 255, 0.1);
+            z-index: 1000;
+        `;
+        
+        const canvasArea = document.querySelector('.canvas-area');
+        canvasArea.style.position = 'relative';
+        canvasArea.appendChild(indicator);
+        
+        // Position indicator at current focal point
+        this.updateFocalPointIndicator();
+        
+        // Canvas click handler
+        this.focalPointHandler = (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Normalize to 0-1 range based on display size
+            this.currentFilterParams.focalX = x / rect.width;
+            this.currentFilterParams.focalY = y / rect.height;
+            
+            // Update indicator position
+            this.updateFocalPointIndicator();
+            
+            // Apply filter with new focal point
+            const intensity = parseInt(document.getElementById('filter-intensity')?.value || 0);
+            this.applyCurrentFilter(intensity);
+        };
+        
+        this.canvas.addEventListener('click', this.focalPointHandler);
+        this.canvas.style.cursor = 'crosshair';
+        
+        // Listen to focalSize changes to update indicator size
+        const focalSizeInput = document.getElementById('filter-focalSize');
+        if (focalSizeInput) {
+            this.focalSizeHandler = () => {
+                this.updateFocalPointIndicator();
+            };
+            focalSizeInput.addEventListener('input', this.focalSizeHandler);
+        }
+    }
+
+    /**
+     * Update focal point indicator position and size
+     */
+    updateFocalPointIndicator() {
+        const indicator = document.getElementById('focal-point-indicator');
+        if (!indicator) return;
+        
+        const focalX = this.currentFilterParams.focalX || 0.5;
+        const focalY = this.currentFilterParams.focalY || 0.5;
+        const focalSize = this.currentFilterParams.focalSize || 200;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const canvasArea = document.querySelector('.canvas-area');
+        const canvasRect = canvasArea.getBoundingClientRect();
+        
+        // Calculate position on screen - use display coordinates directly
+        const left = rect.left - canvasRect.left + (focalX * rect.width);
+        const top = rect.top - canvasRect.top + (focalY * rect.height);
+        
+        // Calculate size - focalSize is in canvas pixels, scale to display size
+        const scale = rect.width / this.canvas.width;
+        const displaySize = focalSize * 2 * scale; // Diameter
+        
+        indicator.style.left = `${left}px`;
+        indicator.style.top = `${top}px`;
+        indicator.style.width = `${displaySize}px`;
+        indicator.style.height = `${displaySize}px`;
+        indicator.style.display = 'block';
+    }
+
+    /**
+     * Disable focal point interaction
+     */
+    disableFocalPointInteraction() {
+        if (this.focalPointHandler) {
+            this.canvas.removeEventListener('click', this.focalPointHandler);
+            this.focalPointHandler = null;
+        }
+        
+        if (this.focalSizeHandler) {
+            const focalSizeInput = document.getElementById('filter-focalSize');
+            if (focalSizeInput) {
+                focalSizeInput.removeEventListener('input', this.focalSizeHandler);
+            }
+            this.focalSizeHandler = null;
+        }
+        
+        this.canvas.style.cursor = 'default';
+        
+        const indicator = document.getElementById('focal-point-indicator');
+        if (indicator) {
+            indicator.remove();
         }
     }
 
@@ -551,92 +1193,91 @@ class EnhancedMosaicEditor {
         
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         
-        // Apply filter
-        const filtered = this.applyFilter(imageData, this.currentTool, intensity);
+        // Apply filter with parameters
+        const filtered = this.applyFilter(imageData, this.currentTool, intensity, this.currentFilterParams);
         this.ctx.putImageData(filtered, 0, 0);
     }
 
+    applyFilter(imageData, filterName, intensity, params = {}) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+
+            // Create a copy for processing
+            const result = new ImageData(
+                new Uint8ClampedArray(data),
+                width,
+                height
+            );
+
+            // Apply the appropriate filter
+            switch(filterName) {
+                // Common
+                case 'I\'m Feeling Lucky': return this.filterLucky(result, intensity, params);
+                case 'Autocontrast': return this.filterAutocontrast(result, intensity, params);
+                case 'Autocolor': return this.filterAutocolor(result, intensity, params);
+
+                // Lighting/Color
+                case 'Fill Light': return this.filterFillLight(result, intensity, params);
+                case 'Highlights': return this.filterHighlights(result, intensity, params);
+                case 'Shadows': return this.filterShadows(result, intensity, params);
+                case 'Color Temperature': return this.filterColorTemp(result, intensity, params);
+                case 'Brightness': return this.filterBrightness(result, intensity, params);
+                case 'Contrast': return this.filterContrast(result, intensity, params);
+
+                // Filter A
+                case 'Sharpen': return this.filterSharpen(result, intensity, params);
+                case 'Sepia': return this.filterSepia(result, intensity, params);
+                case 'B&W': return this.filterBW(result, intensity, params);
+                case 'Warmify': return this.filterWarmify(result, intensity, params);
+                case 'Film Grain': return this.filterFilmGrain(result, intensity, params);
+                case 'Tint': return this.filterTint(result, intensity, params);
+                case 'Saturation': return this.filterSaturation(result, intensity, params);
+                case 'Soft Focus': return this.filterSoftFocus(result, intensity, params);
+                case 'Glow': return this.filterGlow(result, intensity, params);
+                case 'Filtered B&W': return this.filterFilteredBW(result, intensity, params);
+                case 'Focal B&W': return this.filterFocalBW(result, intensity, params);
+                case 'Graduated Tint': return this.filterGraduatedTint(result, intensity, params);
+
+                // Filter B
+                case 'Infrared': return this.filterInfrared(result, intensity, params);
+                case 'Lomo-ish': return this.filterLomo(result, intensity, params);
+                case 'Holga-ish': return this.filterHolga(result, intensity, params);
+                case 'HDR-ish': return this.filterHDR(result, intensity, params);
+                case 'Cinemascope': return this.filterCinemascope(result, intensity, params);
+                case 'Orton-ish': return this.filterOrton(result, intensity, params);
+                case '1960\'s': return this.filter1960s(result, intensity, params);
+                case 'Invert Colors': return this.filterInvert(result, intensity, params);
+                case 'Heat Map': return this.filterHeatMap(result, intensity, params);
+                case 'Cross Process': return this.filterCrossProcess(result, intensity, params);
+                case 'Posterize': return this.filterPosterize(result, intensity, params);
+                case 'Duo Tone': return this.filterDuoTone(result, intensity, params);
+
+                // Filter C
+                case 'Boost': return this.filterBoost(result, intensity, params);
+                case 'Soften': return this.filterSoften(result, intensity, params);
+                case 'Vignette': return this.filterVignette(result, intensity, params);
+                case 'Pixelate': return this.filterPixelate(result, intensity, params);
+                case 'Focal Zoom': return this.filterFocalZoom(result, intensity, params);
+                case 'Pencil Sketch': return this.filterPencilSketch(result, intensity, params);
+                case 'Neon': return this.filterNeon(result, intensity, params);
+                case 'Comic Book': return this.filterComicBook(result, intensity, params);
+                case 'Tilt Shift': return this.filterTiltShift(result, intensity, params);
+
+                // Instagram
+                case 'Valencia': return this.filterValencia(result, intensity, params);
+                case 'Nashville': return this.filterNashville(result, intensity, params);
+                case 'Clarendon': return this.filterClarendon(result, intensity, params);
+                case 'Gingham': return this.filterGingham(result, intensity, params);
+                case 'Juno': return this.filterJuno(result, intensity, params);
+                case 'Lark': return this.filterLark(result, intensity, params);
+
+                default: return result;
+            }
+        }
+
     // ==================== FILTER ENGINE ====================
     
-    applyFilter(imageData, filterName, intensity) {
-        const data = imageData.data;
-        const width = imageData.width;
-        const height = imageData.height;
-        
-        // Create a copy for processing
-        const result = new ImageData(
-            new Uint8ClampedArray(data),
-            width,
-            height
-        );
-        
-        // Apply the appropriate filter
-        switch(filterName) {
-            // Common
-            case 'I\'m Feeling Lucky': return this.filterLucky(result, intensity);
-            case 'Autocontrast': return this.filterAutocontrast(result, intensity);
-            case 'Autocolor': return this.filterAutocolor(result, intensity);
-            
-            // Lighting/Color
-            case 'Fill Light': return this.filterFillLight(result, intensity);
-            case 'Highlights': return this.filterHighlights(result, intensity);
-            case 'Shadows': return this.filterShadows(result, intensity);
-            case 'Color Temperature': return this.filterColorTemp(result, intensity);
-            case 'Brightness': return this.filterBrightness(result, intensity);
-            case 'Contrast': return this.filterContrast(result, intensity);
-            
-            // Filter A
-            case 'Sharpen': return this.filterSharpen(result, intensity);
-            case 'Sepia': return this.filterSepia(result, intensity);
-            case 'B&W': return this.filterBW(result, intensity);
-            case 'Warmify': return this.filterWarmify(result, intensity);
-            case 'Film Grain': return this.filterFilmGrain(result, intensity);
-            case 'Tint': return this.filterTint(result, intensity);
-            case 'Saturation': return this.filterSaturation(result, intensity);
-            case 'Soft Focus': return this.filterSoftFocus(result, intensity);
-            case 'Glow': return this.filterGlow(result, intensity);
-            case 'Filtered B&W': return this.filterFilteredBW(result, intensity);
-            case 'Focal B&W': return this.filterFocalBW(result, intensity);
-            case 'Graduated Tint': return this.filterGraduatedTint(result, intensity);
-            
-            // Filter B
-            case 'Infrared': return this.filterInfrared(result, intensity);
-            case 'Lomo-ish': return this.filterLomo(result, intensity);
-            case 'Holga-ish': return this.filterHolga(result, intensity);
-            case 'HDR-ish': return this.filterHDR(result, intensity);
-            case 'Cinemascope': return this.filterCinemascope(result, intensity);
-            case 'Orton-ish': return this.filterOrton(result, intensity);
-            case '1960\'s': return this.filter1960s(result, intensity);
-            case 'Invert Colors': return this.filterInvert(result, intensity);
-            case 'Heat Map': return this.filterHeatMap(result, intensity);
-            case 'Cross Process': return this.filterCrossProcess(result, intensity);
-            case 'Posterize': return this.filterPosterize(result, intensity);
-            case 'Duo Tone': return this.filterDuoTone(result, intensity);
-            
-            // Filter C
-            case 'Boost': return this.filterBoost(result, intensity);
-            case 'Soften': return this.filterSoften(result, intensity);
-            case 'Vignette': return this.filterVignette(result, intensity);
-            case 'Pixelate': return this.filterPixelate(result, intensity);
-            case 'Focal Zoom': return this.filterFocalZoom(result, intensity);
-            case 'Pencil Sketch': return this.filterPencilSketch(result, intensity);
-            case 'Neon': return this.filterNeon(result, intensity);
-            case 'Comic Book': return this.filterComicBook(result, intensity);
-            case 'Tilt Shift': return this.filterTiltShift(result, intensity);
-            
-            // Instagram
-            case 'Valencia': return this.filterValencia(result, intensity);
-            case 'Nashville': return this.filterNashville(result, intensity);
-            case 'Clarendon': return this.filterClarendon(result, intensity);
-            case 'Gingham': return this.filterGingham(result, intensity);
-            case 'Juno': return this.filterJuno(result, intensity);
-            case 'Lark': return this.filterLark(result, intensity);
-            
-            default: return result;
-        }
-    }
-
-
     // ==================== COMMON FILTERS ====================
     
     filterLucky(imageData, intensity) {
@@ -1013,25 +1654,35 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterTint(imageData, intensity) {
-        const data = imageData.data;
-        const tintHue = 30; // Orange tint
-        const amount = intensity / 100;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const hsl = this.rgbToHsl(data[i], data[i + 1], data[i + 2]);
-            hsl.h = tintHue;
-            hsl.s = Math.min(1, hsl.s * (1 + amount));
-            
-            const rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
-            
-            data[i] = this.blend(data[i], rgb.r, intensity);
-            data[i + 1] = this.blend(data[i + 1], rgb.g, intensity);
-            data[i + 2] = this.blend(data[i + 2], rgb.b, intensity);
+    filterTint(imageData, intensity, params = {}) {
+            const data = imageData.data;
+
+            // Extract tint color from params or use default
+            const tintColor = params.tintColor || '#ff8800';
+
+            // Convert hex color to RGB
+            const tintRGB = this.hexToRGB(tintColor);
+
+            // Convert RGB to HSL to get hue
+            const tintHSL = this.rgbToHsl(tintRGB.r, tintRGB.g, tintRGB.b);
+            const tintHue = tintHSL.h;
+
+            const amount = intensity / 100;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const hsl = this.rgbToHsl(data[i], data[i + 1], data[i + 2]);
+                hsl.h = tintHue;
+                hsl.s = Math.min(1, hsl.s * (1 + amount));
+
+                const rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
+
+                data[i] = this.blend(data[i], rgb.r, intensity);
+                data[i + 1] = this.blend(data[i + 1], rgb.g, intensity);
+                data[i + 2] = this.blend(data[i + 2], rgb.b, intensity);
+            }
+
+            return imageData;
         }
-        
-        return imageData;
-    }
 
     filterSaturation(imageData, intensity) {
         const data = imageData.data;
@@ -1051,13 +1702,54 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterSoftFocus(imageData, intensity) {
+    filterSoftFocus(imageData, intensity, params = {}) {
         if (Math.abs(intensity) < 5) {
             return imageData;
         }
         
+        // Get focal point and size from params
+        // focalX and focalY are normalized (0-1), convert to pixel coordinates
+        const focalXNorm = params.focalX !== undefined ? params.focalX : 0.5;
+        const focalYNorm = params.focalY !== undefined ? params.focalY : 0.5;
+        const focalX = focalXNorm * imageData.width;
+        const focalY = focalYNorm * imageData.height;
+        const focalSize = params.focalSize !== undefined ? params.focalSize : 200;
+        
+        const width = imageData.width;
+        const height = imageData.height;
+        
+        // Create blurred version
         const blurred = this.gaussianBlur(imageData, Math.abs(intensity) / 10);
-        return this.blendImageData(imageData, blurred, Math.abs(intensity) * 0.5);
+        
+        // Apply focal masking
+        const data = imageData.data;
+        const blurredData = blurred.data;
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const i = (y * width + x) * 4;
+                
+                // Calculate distance from focal point
+                const dist = Math.sqrt((x - focalX) ** 2 + (y - focalY) ** 2);
+                
+                // Calculate blur amount based on distance
+                let blurAmount = 0;
+                if (dist < focalSize) {
+                    // Inside focal area - no blur
+                    blurAmount = 0;
+                } else {
+                    // Outside focal area - progressive blur
+                    blurAmount = Math.min(1, (dist - focalSize) / focalSize);
+                }
+                
+                // Blend original and blurred based on blur amount
+                data[i] = data[i] + (blurredData[i] - data[i]) * blurAmount;
+                data[i + 1] = data[i + 1] + (blurredData[i + 1] - data[i + 1]) * blurAmount;
+                data[i + 2] = data[i + 2] + (blurredData[i + 2] - data[i + 2]) * blurAmount;
+            }
+        }
+        
+        return imageData;
     }
 
     filterGlow(imageData, intensity) {
@@ -1096,38 +1788,53 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterFilteredBW(imageData, intensity) {
-        const data = imageData.data;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            // Red filter simulation
-            const gray = data[i] * 0.5 + data[i + 1] * 0.3 + data[i + 2] * 0.2;
-            
-            data[i] = this.blend(data[i], gray, intensity);
-            data[i + 1] = this.blend(data[i + 1], gray, intensity);
-            data[i + 2] = this.blend(data[i + 2], gray, intensity);
-        }
-        
-        return imageData;
-    }
+    filterFilteredBW(imageData, intensity, params = {}) {
+            const data = imageData.data;
 
-    filterFocalBW(imageData, intensity) {
+            // Extract filter color from params or use default (red)
+            const filterColor = params.filterColor || '#ff0000';
+            const filterRGB = this.hexToRGB(filterColor);
+
+            // Calculate channel weights based on filter color
+            // Normalize to sum to 1.0
+            const total = filterRGB.r + filterRGB.g + filterRGB.b;
+            const rWeight = filterRGB.r / total;
+            const gWeight = filterRGB.g / total;
+            const bWeight = filterRGB.b / total;
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Apply weighted grayscale conversion based on filter color
+                const gray = data[i] * rWeight + data[i + 1] * gWeight + data[i + 2] * bWeight;
+
+                data[i] = this.blend(data[i], gray, intensity);
+                data[i + 1] = this.blend(data[i + 1], gray, intensity);
+                data[i + 2] = this.blend(data[i + 2], gray, intensity);
+            }
+
+            return imageData;
+        }
+
+    filterFocalBW(imageData, intensity, params = {}) {
         const data = imageData.data;
         const width = imageData.width;
         const height = imageData.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-        const radius = maxDist * 0.3;
+        
+        // Get focal point and size from params
+        // focalX and focalY are normalized (0-1), convert to pixel coordinates
+        const focalXNorm = params.focalX !== undefined ? params.focalX : 0.5;
+        const focalYNorm = params.focalY !== undefined ? params.focalY : 0.5;
+        const focalX = focalXNorm * width;
+        const focalY = focalYNorm * height;
+        const focalSize = params.focalSize !== undefined ? params.focalSize : 200;
         
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const i = (y * width + x) * 4;
-                const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                const dist = Math.sqrt((x - focalX) ** 2 + (y - focalY) ** 2);
                 
-                if (dist > radius) {
+                if (dist > focalSize) {
                     const gray = this.getLuminance(data[i], data[i + 1], data[i + 2]);
-                    const amount = Math.min(1, (dist - radius) / radius) * (intensity / 100);
+                    const amount = Math.min(1, (dist - focalSize) / focalSize) * (intensity / 100);
                     
                     data[i] = this.blend(data[i], gray, amount * 100);
                     data[i + 1] = this.blend(data[i + 1], gray, amount * 100);
@@ -1139,27 +1846,45 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterGraduatedTint(imageData, intensity) {
-        const data = imageData.data;
-        const width = imageData.width;
-        const height = imageData.height;
-        const tintR = 255, tintG = 200, tintB = 100; // Orange tint
-        
-        for (let y = 0; y < height; y++) {
-            const gradient = y / height;
-            const tintAmount = gradient * (intensity / 100);
-            
-            for (let x = 0; x < width; x++) {
-                const i = (y * width + x) * 4;
-                
-                data[i] = this.blend(data[i], tintR, tintAmount * 100);
-                data[i + 1] = this.blend(data[i + 1], tintG, tintAmount * 100);
-                data[i + 2] = this.blend(data[i + 2], tintB, tintAmount * 100);
+    filterGraduatedTint(imageData, intensity, params = {}) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+
+            // Extract parameters or use defaults
+            const tintColor = params.tintColor || '#ffc864';
+            const gradientY = params.gradientY !== undefined ? params.gradientY : height / 2;
+            const feather = params.feather !== undefined ? params.feather : 50;
+            const shade = params.shade !== undefined ? params.shade : 50;
+
+            // Convert hex color to RGB
+            const tintRGB = this.hexToRGB(tintColor);
+
+            // Calculate feather distance in pixels
+            const featherDist = (feather / 100) * height * 0.5;
+
+            for (let y = 0; y < height; y++) {
+                // Calculate distance from gradient line
+                const distFromLine = Math.abs(y - gradientY);
+
+                // Calculate gradient position
+                // 0 = at gradient line (no tint), 1 = at edge (full tint)
+                const gradientPos = Math.min(1, distFromLine / featherDist);
+
+                // Apply shade multiplier
+                const tintAmount = gradientPos * (shade / 100) * (intensity / 100);
+
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+
+                    data[i] = this.blend(data[i], tintRGB.r, tintAmount * 100);
+                    data[i + 1] = this.blend(data[i + 1], tintRGB.g, tintAmount * 100);
+                    data[i + 2] = this.blend(data[i + 2], tintRGB.b, tintAmount * 100);
+                }
             }
+
+            return imageData;
         }
-        
-        return imageData;
-    }
 
 
     // ==================== FILTER B ====================
@@ -1184,7 +1909,10 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterLomo(imageData, intensity) {
+    filterLomo(imageData, intensity, params = {}) {
+        // Extract parameters or use defaults
+        const blurEdges = params.blurEdges !== undefined ? params.blurEdges : 30;
+        
         // Increase contrast
         const contrasted = this.filterContrast(imageData, 30);
         
@@ -1210,28 +1938,61 @@ class EnhancedMosaicEditor {
             }
         }
         
+        // Apply edge blur based on blurEdges parameter
+        if (blurEdges > 0) {
+            const blurRadius = Math.max(1, Math.floor(blurEdges / 10));
+            const blurred = this.gaussianBlur(vignetted, blurRadius);
+            return this.blendImageData(vignetted, blurred, blurEdges / 100);
+        }
+        
         return vignetted;
     }
 
-    filterHolga(imageData, intensity) {
+    filterHolga(imageData, intensity, params = {}) {
+        // Extract parameters or use defaults
+        const blurEdges = params.blurEdges !== undefined ? params.blurEdges : 30;
+        const grain = params.grain !== undefined ? params.grain : 20;
+        
         // Reduce saturation
         const desaturated = this.filterSaturation(imageData, 30);
         
         // Strong vignette
         const vignetted = this.filterVignette(desaturated, intensity * 0.8);
         
-        // Slight blur to edges
-        const blurred = this.gaussianBlur(vignetted, 2);
+        // Apply edge blur based on blurEdges parameter
+        let result = vignetted;
+        if (blurEdges > 0) {
+            const blurRadius = Math.max(1, Math.floor(blurEdges / 10));
+            const blurred = this.gaussianBlur(vignetted, blurRadius);
+            result = this.blendImageData(vignetted, blurred, blurEdges / 100);
+        }
         
-        return this.blendImageData(vignetted, blurred, intensity * 0.3);
+        // Add grain/noise based on grain parameter
+        if (grain > 0) {
+            const data = result.data;
+            const grainIntensity = grain / 100;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 50 * grainIntensity;
+                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+                data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+            }
+        }
+        
+        return result;
     }
 
-    filterHDR(imageData, intensity) {
+    filterHDR(imageData, intensity, params = {}) {
         // Intensity 0-100: 0 = no effect, 100 = full HDR effect
         if (intensity === 0) return imageData;
         
+        // Extract parameters or use defaults
+        const radius = params.radius !== undefined ? params.radius : 50;
+        const strength = params.strength !== undefined ? params.strength : 50;
+        
         const data = imageData.data;
         const normalizedIntensity = intensity / 100;
+        const strengthFactor = strength / 50; // Normalize to 1.0 at default
         
         for (let i = 0; i < data.length; i += 4) {
             const origR = data[i];
@@ -1244,18 +2005,22 @@ class EnhancedMosaicEditor {
             let newG = origG;
             let newB = origB;
             
-            // Compress highlights
-            if (l > 180) {
-                const newL = 180 + (l - 180) * 0.3;
+            // Compress highlights (affected by strength)
+            const highlightThreshold = 180 + (radius - 50) / 2;
+            if (l > highlightThreshold) {
+                const compressionFactor = 0.3 * strengthFactor;
+                const newL = highlightThreshold + (l - highlightThreshold) * compressionFactor;
                 const factor = newL / l;
                 newR = origR * factor;
                 newG = origG * factor;
                 newB = origB * factor;
             }
             
-            // Expand shadows
-            if (l < 75) {
-                const newL = 75 - (75 - l) * 0.3;
+            // Expand shadows (affected by strength)
+            const shadowThreshold = 75 - (radius - 50) / 2;
+            if (l < shadowThreshold) {
+                const expansionFactor = 0.3 * strengthFactor;
+                const newL = shadowThreshold - (shadowThreshold - l) * expansionFactor;
                 const factor = newL / l;
                 newR = origR * factor;
                 newG = origG * factor;
@@ -1268,8 +2033,8 @@ class EnhancedMosaicEditor {
             data[i + 2] = this.blend(origB, newB, normalizedIntensity);
         }
         
-        // Boost saturation based on intensity
-        return this.filterSaturation(imageData, 65 * normalizedIntensity);
+        // Boost saturation based on intensity and strength
+        return this.filterSaturation(imageData, 65 * normalizedIntensity * strengthFactor);
     }
 
     filterCinemascope(imageData, intensity) {
@@ -1326,19 +2091,26 @@ class EnhancedMosaicEditor {
         return this.filterSaturation(imageData, 100 - (55 * normalizedIntensity));
     }
 
-    filterOrton(imageData, intensity) {
-        // Create blurred copy
-        const blurred = this.gaussianBlur(imageData, 20);
+    filterOrton(imageData, intensity, params = {}) {
+        // Extract parameters or use defaults
+        const bloom = params.bloom !== undefined ? params.bloom : 50;
+        const brightness = params.brightness !== undefined ? params.brightness : 30;
         
-        // Lighten blurred copy
+        // Create blurred copy with bloom parameter affecting blur radius
+        const blurRadius = Math.max(5, Math.floor(10 + (bloom / 100) * 30));
+        const blurred = this.gaussianBlur(imageData, blurRadius);
+        
+        // Lighten blurred copy based on brightness parameter
+        const brightnessMultiplier = 1 + (brightness / 100);
         for (let i = 0; i < blurred.data.length; i += 4) {
-            blurred.data[i] = Math.min(255, blurred.data[i] * 1.3);
-            blurred.data[i + 1] = Math.min(255, blurred.data[i + 1] * 1.3);
-            blurred.data[i + 2] = Math.min(255, blurred.data[i + 2] * 1.3);
+            blurred.data[i] = Math.min(255, blurred.data[i] * brightnessMultiplier);
+            blurred.data[i + 1] = Math.min(255, blurred.data[i + 1] * brightnessMultiplier);
+            blurred.data[i + 2] = Math.min(255, blurred.data[i + 2] * brightnessMultiplier);
         }
         
-        // Screen blend
-        return this.blendImageData(imageData, blurred, intensity * 0.5);
+        // Screen blend with intensity
+        const blendAmount = intensity * (0.3 + (bloom / 200));
+        return this.blendImageData(imageData, blurred, blendAmount);
     }
 
     filter1960s(imageData, intensity) {
@@ -1453,25 +2225,54 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterDuoTone(imageData, intensity) {
-        const data = imageData.data;
-        const color1 = { r: 50, g: 20, b: 80 };   // Shadow color (purple)
-        const color2 = { r: 255, g: 200, b: 100 }; // Highlight color (orange)
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const l = this.getLuminance(data[i], data[i + 1], data[i + 2]) / 255;
-            
-            const r = color1.r + (color2.r - color1.r) * l;
-            const g = color1.g + (color2.g - color1.g) * l;
-            const b = color1.b + (color2.b - color1.b) * l;
-            
-            data[i] = this.blend(data[i], r, intensity);
-            data[i + 1] = this.blend(data[i + 1], g, intensity);
-            data[i + 2] = this.blend(data[i + 2], b, intensity);
+    filterDuoTone(imageData, intensity, params = {}) {
+            const data = imageData.data;
+
+            // Extract colors from params or use defaults
+            const shadowColor = params.shadowColor || '#2c3e50';
+            const highlightColor = params.highlightColor || '#f39c12';
+            const brightness = params.brightness || 0;
+            const contrast = params.contrast || 0;
+
+            // Convert hex colors to RGB
+            const color1 = this.hexToRGB(shadowColor);
+            const color2 = this.hexToRGB(highlightColor);
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+
+                // Apply brightness adjustment
+                if (brightness !== 0) {
+                    r = Math.max(0, Math.min(255, r + brightness * 2.55));
+                    g = Math.max(0, Math.min(255, g + brightness * 2.55));
+                    b = Math.max(0, Math.min(255, b + brightness * 2.55));
+                }
+
+                // Apply contrast adjustment
+                if (contrast !== 0) {
+                    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+                    r = Math.max(0, Math.min(255, factor * (r - 128) + 128));
+                    g = Math.max(0, Math.min(255, factor * (g - 128) + 128));
+                    b = Math.max(0, Math.min(255, factor * (b - 128) + 128));
+                }
+
+                // Calculate luminance
+                const l = this.getLuminance(r, g, b) / 255;
+
+                // Map luminance to gradient between shadow and highlight colors
+                const duoR = color1.r + (color2.r - color1.r) * l;
+                const duoG = color1.g + (color2.g - color1.g) * l;
+                const duoB = color1.b + (color2.b - color1.b) * l;
+
+                data[i] = this.blend(data[i], duoR, intensity);
+                data[i + 1] = this.blend(data[i + 1], duoG, intensity);
+                data[i + 2] = this.blend(data[i + 2], duoB, intensity);
+            }
+
+            return imageData;
         }
-        
-        return imageData;
-    }
 
     // ==================== FILTER C ====================
     
@@ -1500,28 +2301,47 @@ class EnhancedMosaicEditor {
         return this.blendImageData(imageData, blurred, normalizedIntensity * 0.7);
     }
 
-    filterVignette(imageData, intensity) {
-        const data = imageData.data;
-        const width = imageData.width;
-        const height = imageData.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-        
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                const i = (y * width + x) * 4;
-                const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-                const vignette = 1 - (distance / maxDist) * (intensity / 100);
-                
-                data[i] *= vignette;
-                data[i + 1] *= vignette;
-                data[i + 2] *= vignette;
+    filterVignette(imageData, intensity, params = {}) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Extract parameters or use defaults
+            const size = params.size !== undefined ? params.size : 50;
+            const strength = params.strength !== undefined ? params.strength : 50;
+            const vignetteColor = params.vignetteColor || '#000000';
+
+            // Convert vignette color to RGB
+            const colorRGB = this.hexToRGB(vignetteColor);
+
+            // Calculate vignette radius based on size parameter (0-100)
+            // Size 0 = small vignette, Size 100 = large vignette
+            const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+            const vignetteRadius = maxDist * (1 - size / 200); // Adjust scaling
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+                    const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+                    // Calculate vignette amount based on distance and parameters
+                    let vignetteAmount = 0;
+                    if (distance > vignetteRadius) {
+                        vignetteAmount = ((distance - vignetteRadius) / (maxDist - vignetteRadius)) * (strength / 100) * (intensity / 100);
+                        vignetteAmount = Math.min(1, vignetteAmount);
+                    }
+
+                    // Blend with vignette color
+                    data[i] = this.blend(data[i], colorRGB.r, vignetteAmount * 100);
+                    data[i + 1] = this.blend(data[i + 1], colorRGB.g, vignetteAmount * 100);
+                    data[i + 2] = this.blend(data[i + 2], colorRGB.b, vignetteAmount * 100);
+                }
             }
+
+            return imageData;
         }
-        
-        return imageData;
-    }
 
     filterPixelate(imageData, intensity) {
         // Skip if intensity is too low
@@ -1570,13 +2390,25 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterFocalZoom(imageData, intensity) {
+    filterFocalZoom(imageData, intensity, params = {}) {
         const data = imageData.data;
         const width = imageData.width;
         const height = imageData.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
+        
+        // Extract parameters or use defaults
+        const zoominess = params.zoominess !== undefined ? params.zoominess : 50;
+        const focalSize = params.focalSize !== undefined ? params.focalSize : 200;
+        const edgeHardness = params.edgeHardness !== undefined ? params.edgeHardness : 50;
+        const focalXNorm = params.focalX !== undefined ? params.focalX : 0.5;
+        const focalYNorm = params.focalY !== undefined ? params.focalY : 0.5;
+        
+        // Calculate focal point in pixel coordinates
+        const centerX = width * focalXNorm;
+        const centerY = height * focalYNorm;
         const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+        
+        // focalSize is in pixels (radius)
+        const focalRadius = focalSize;
         
         const result = new ImageData(
             new Uint8ClampedArray(data),
@@ -1588,16 +2420,26 @@ class EnhancedMosaicEditor {
             for (let x = 0; x < width; x++) {
                 const i = (y * width + x) * 4;
                 const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-                const blurAmount = (distance / maxDist) * (intensity / 100);
+                
+                // Calculate blur amount based on distance from focal point
+                let blurFactor = 0;
+                if (distance > focalRadius) {
+                    // Apply edge hardness to transition
+                    const distanceFromFocal = distance - focalRadius;
+                    const hardnessFactor = 1 - (edgeHardness / 100) * 0.5;
+                    blurFactor = Math.min(1, (distanceFromFocal / (maxDist * hardnessFactor)));
+                }
+                
+                const blurAmount = blurFactor * (intensity / 100) * (zoominess / 50);
                 
                 if (blurAmount > 0.1) {
-                    // Simple radial blur approximation
+                    // Radial blur with zoominess
                     let r = 0, g = 0, b = 0, samples = 0;
-                    const sampleCount = Math.floor(blurAmount * 5);
+                    const sampleCount = Math.max(2, Math.floor(blurAmount * 8));
                     
                     for (let s = 0; s < sampleCount; s++) {
                         const angle = Math.atan2(y - centerY, x - centerX);
-                        const offset = s * blurAmount * 2;
+                        const offset = s * blurAmount * 3;
                         const sx = Math.floor(x + Math.cos(angle) * offset);
                         const sy = Math.floor(y + Math.sin(angle) * offset);
                         
@@ -1622,22 +2464,31 @@ class EnhancedMosaicEditor {
         return result;
     }
 
-    filterPencilSketch(imageData, intensity) {
+    filterPencilSketch(imageData, intensity, params = {}) {
+        // Extract parameters or use defaults
+        const radius = params.radius !== undefined ? params.radius : 50;
+        const strength = params.strength !== undefined ? params.strength : 50;
+        
         // Convert to grayscale
         const gray = this.filterBW(imageData, 100);
         
         // Invert
         const inverted = this.filterInvert(gray, 100);
         
-        // Blur
-        const blurred = this.gaussianBlur(inverted, 5);
+        // Blur with radius parameter
+        const blurAmount = Math.max(1, Math.floor(3 + (radius / 100) * 7));
+        const blurred = this.gaussianBlur(inverted, blurAmount);
         
-        // Color dodge blend
+        // Color dodge blend with strength parameter
         const data = gray.data;
         const blurData = blurred.data;
+        const strengthFactor = strength / 50;
         
         for (let i = 0; i < data.length; i += 4) {
-            const result = Math.min(255, (data[i] * 255) / (255 - blurData[i] + 1));
+            let result = Math.min(255, (data[i] * 255) / (255 - blurData[i] + 1));
+            
+            // Apply strength by adjusting contrast of sketch
+            result = Math.max(0, Math.min(255, (result - 128) * strengthFactor + 128));
             
             data[i] = this.blend(imageData.data[i], result, intensity);
             data[i + 1] = this.blend(imageData.data[i + 1], result, intensity);
@@ -1647,61 +2498,118 @@ class EnhancedMosaicEditor {
         return imageData;
     }
 
-    filterNeon(imageData, intensity) {
-        // Edge detection
-        const edges = this.detectEdges(imageData);
-        
-        // Invert edges
-        const data = edges.data;
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] = 255 - data[i];
-            data[i + 1] = 255 - data[i + 1];
-            data[i + 2] = 255 - data[i + 2];
-        }
-        
-        // Apply glow
-        const glowed = this.gaussianBlur(edges, 3);
-        
-        // Colorize with neon colors
-        for (let i = 0; i < glowed.data.length; i += 4) {
-            const l = this.getLuminance(glowed.data[i], glowed.data[i + 1], glowed.data[i + 2]);
-            glowed.data[i] = Math.min(255, l * 1.5);      // Cyan-ish
-            glowed.data[i + 1] = Math.min(255, l * 1.2);
-            glowed.data[i + 2] = Math.min(255, l * 2);
-        }
-        
-        return this.blendImageData(imageData, glowed, intensity);
-    }
+    filterNeon(imageData, intensity, params = {}) {
+            // Extract neon color from params or use default
+            const neonColor = params.neonColor || '#ff0000';
+            const neonRGB = this.hexToRGB(neonColor);
 
-    filterComicBook(imageData, intensity) {
-        // Create a copy for posterize to avoid modifying original
-        const posterized = new ImageData(
-            new Uint8ClampedArray(imageData.data),
-            imageData.width,
-            imageData.height
-        );
-        
-        // Posterize the copy
-        this.filterPosterize(posterized, 80);
-        
-        // Edge detection on original
-        const edges = this.detectEdges(imageData);
-        
-        // Combine
-        const data = posterized.data;
-        const edgeData = edges.data;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const edgeStrength = edgeData[i] / 255;
-            if (edgeStrength > 0.3) {
-                data[i] = 0;
-                data[i + 1] = 0;
-                data[i + 2] = 0;
+            // Edge detection
+            const edges = this.detectEdges(imageData);
+
+            // Invert edges
+            const data = edges.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
             }
+
+            // Apply glow
+            const glowed = this.gaussianBlur(edges, 3);
+
+            // Colorize with custom neon color
+            for (let i = 0; i < glowed.data.length; i += 4) {
+                const l = this.getLuminance(glowed.data[i], glowed.data[i + 1], glowed.data[i + 2]) / 255;
+                glowed.data[i] = Math.min(255, neonRGB.r * l * 1.5);
+                glowed.data[i + 1] = Math.min(255, neonRGB.g * l * 1.5);
+                glowed.data[i + 2] = Math.min(255, neonRGB.b * l * 1.5);
+            }
+
+            return this.blendImageData(imageData, glowed, intensity);
         }
-        
-        return this.blendImageData(imageData, posterized, intensity);
-    }
+
+    filterComicBook(imageData, intensity, params = {}) {
+            // Extract parameters or use defaults
+            const colorBrush = params.colorBrush !== undefined ? params.colorBrush : 8;
+            const dotDensity = params.dotDensity !== undefined ? params.dotDensity : 4;
+
+            const width = imageData.width;
+            const height = imageData.height;
+
+            // Create a copy for posterize to avoid modifying original
+            const posterized = new ImageData(
+                new Uint8ClampedArray(imageData.data),
+                width,
+                height
+            );
+
+            // Posterize the copy with custom color brush levels
+            const posterizeIntensity = 100 - (colorBrush / 16) * 50;
+            this.filterPosterize(posterized, posterizeIntensity);
+
+            // Edge detection on original
+            const edges = this.detectEdges(imageData);
+
+            // Apply halftone dots
+            const data = posterized.data;
+            const edgeData = edges.data;
+            
+            // Calculate dot size based on density (1-10, where 10 is smallest dots)
+            const dotSize = Math.max(2, 12 - dotDensity);
+            const dotSpacing = dotSize;
+
+            // Apply halftone pattern
+            for (let y = 0; y < height; y += dotSpacing) {
+                for (let x = 0; x < width; x += dotSpacing) {
+                    // Sample the center pixel of this dot area
+                    const centerX = Math.min(x + Math.floor(dotSpacing / 2), width - 1);
+                    const centerY = Math.min(y + Math.floor(dotSpacing / 2), height - 1);
+                    const centerIdx = (centerY * width + centerX) * 4;
+                    
+                    // Calculate luminance of the center pixel
+                    const lum = this.getLuminance(data[centerIdx], data[centerIdx + 1], data[centerIdx + 2]);
+                    
+                    // Calculate dot radius based on luminance (darker = larger dots)
+                    const dotRadius = ((255 - lum) / 255) * (dotSize / 2);
+                    
+                    // Draw the dot
+                    for (let dy = 0; dy < dotSpacing && y + dy < height; dy++) {
+                        for (let dx = 0; dx < dotSpacing && x + dx < width; dx++) {
+                            const px = x + dx;
+                            const py = y + dy;
+                            
+                            // Calculate distance from dot center
+                            const distX = dx - dotSpacing / 2;
+                            const distY = dy - dotSpacing / 2;
+                            const dist = Math.sqrt(distX * distX + distY * distY);
+                            
+                            // If outside dot radius, make it white (paper color)
+                            if (dist > dotRadius) {
+                                const idx = (py * width + px) * 4;
+                                // Blend towards white based on distance
+                                const whiteFactor = Math.min(1, (dist - dotRadius) / (dotSize / 4));
+                                data[idx] = data[idx] + (255 - data[idx]) * whiteFactor * 0.7;
+                                data[idx + 1] = data[idx + 1] + (255 - data[idx + 1]) * whiteFactor * 0.7;
+                                data[idx + 2] = data[idx + 2] + (255 - data[idx + 2]) * whiteFactor * 0.7;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add black edges for comic book outline effect
+            const edgeThreshold = 0.3;
+            for (let i = 0; i < data.length; i += 4) {
+                const edgeStrength = edgeData[i] / 255;
+                if (edgeStrength > edgeThreshold) {
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                }
+            }
+
+            return this.blendImageData(imageData, posterized, intensity);
+        }
 
     filterTiltShift(imageData, intensity) {
         const data = imageData.data;
@@ -1963,6 +2871,60 @@ class EnhancedMosaicEditor {
         };
     }
 
+    /**
+     * Convert hex color string to RGB object
+     * @param {string} hex - Hex color string (e.g., '#ff8800' or 'ff8800')
+     * @returns {Object} RGB object with r, g, b properties (0-255)
+     */
+    hexToRGB(hex) {
+        // Handle invalid input
+        if (!hex || typeof hex !== 'string') {
+            console.warn('hexToRGB: Invalid input type:', hex);
+            return { r: 255, g: 0, b: 0 }; // Default to red
+        }
+        
+        // Store original for debugging
+        const original = hex;
+        
+        // Remove # if present
+        hex = hex.replace(/^#/, '');
+        
+        // Ensure hex is 6 characters
+        if (hex.length !== 6) {
+            console.warn('hexToRGB: Invalid length:', original, 'cleaned:', hex);
+            return { r: 255, g: 0, b: 0 }; // Default to red
+        }
+        
+        // Validate hex characters
+        if (!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+            console.warn('hexToRGB: Invalid hex characters:', hex);
+            return { r: 255, g: 0, b: 0 }; // Default to red
+        }
+        
+        // Parse hex values - extract substrings first for debugging
+        const rHex = hex.substring(0, 2);
+        const gHex = hex.substring(2, 4);
+        const bHex = hex.substring(4, 6);
+        
+        const r = parseInt(rHex, 16);
+        const g = parseInt(gHex, 16);
+        const b = parseInt(bHex, 16);
+        
+        // Validate parsed values
+        if (isNaN(r) || isNaN(g) || isNaN(b)) {
+            console.error('hexToRGB: Parse failed!', {
+                original,
+                hex,
+                rHex, r,
+                gHex, g,
+                bHex, b
+            });
+            return { r: 255, g: 0, b: 0 }; // Default to red
+        }
+        
+        return { r, g, b };
+    }
+
     gaussianBlur(imageData, radius) {
         const data = imageData.data;
         const width = imageData.width;
@@ -2129,13 +3091,13 @@ class EnhancedMosaicEditor {
     
     savePreset() {
         const body = `
-            <label class="mosaic-dialog-label">Preset Name:</label>
-            <input type="text" id="preset-name" class="mosaic-dialog-input" placeholder="Enter preset name">
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_PRESET_NAME', 'Preset Name')}:</label>
+            <input type="text" id="preset-name" class="mosaic-dialog-input" placeholder="${this.t('COM_PHOCAMOSAIC_ENTER_PRESET_NAME', 'Enter preset name')}">
         `;
         
-        this.showModal('Save Preset', body, [
-            { text: 'Cancel', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-            { text: 'Save', class: 'mosaic-dialog-btn-primary', onClick: async () => {
+        this.showModal(this.t('COM_PHOCAMOSAIC_SAVE_PRESET', 'Save Preset'), body, [
+            { text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+            { text: this.t('COM_PHOCAMOSAIC_SAVE', 'Save'), class: 'mosaic-dialog-btn-primary', onClick: async () => {
                 const name = document.getElementById('preset-name').value.trim();
                 if (!name) {
                     this.showToast(this.t('COM_PHOCAMOSAIC_ENTER_PRESET_NAME', 'Please enter a preset name'), 'warning');
@@ -2251,16 +3213,16 @@ class EnhancedMosaicEditor {
             }
             
             const body = `
-                <label class="mosaic-dialog-label">Select Preset:</label>
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_SELECT_PRESET', 'Select Preset')}:</label>
                 <select id="preset-select" class="mosaic-dialog-select">
                     ${presets.map(preset => `<option value="${preset.id}">${preset.name}</option>`).join('')}
                 </select>
-                <button type="button" id="delete-preset-btn" class="mosaic-dialog-btn mosaic-dialog-btn-danger" style="width: 100%; margin-top: 1rem;">Delete Selected</button>
+                <button type="button" id="delete-preset-btn" class="mosaic-dialog-btn mosaic-dialog-btn-danger" style="width: 100%; margin-top: 1rem;">${this.t('COM_PHOCAMOSAIC_DELETE', 'Delete')} ${this.t('COM_PHOCAMOSAIC_SELECT_PRESET', 'Selected')}</button>
             `;
             
-            this.showModal('Load Preset', body, [
-                { text: 'Cancel', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-                { text: 'Load', class: 'mosaic-dialog-btn-primary', onClick: () => {
+            this.showModal(this.t('COM_PHOCAMOSAIC_LOAD_PRESET', 'Load Preset'), body, [
+                { text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+                { text: this.t('COM_PHOCAMOSAIC_LOAD', 'Load'), class: 'mosaic-dialog-btn-primary', onClick: () => {
                     const selectedId = parseInt(document.getElementById('preset-select').value);
                     //console.log('Selected preset ID:', selectedId);
                     
@@ -2372,15 +3334,15 @@ class EnhancedMosaicEditor {
         }
         
         const body = `
-            <label class="mosaic-dialog-label">Select Preset:</label>
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_SELECT_PRESET', 'Select Preset')}:</label>
             <select id="preset-select" class="mosaic-dialog-select">
                 ${names.map(name => `<option value="${name}">${name}</option>`).join('')}
             </select>
         `;
         
-        this.showModal('Load Preset', body, [
-            { text: 'Cancel', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-            { text: 'Load', class: 'mosaic-dialog-btn-primary', onClick: () => {
+        this.showModal(this.t('COM_PHOCAMOSAIC_LOAD_PRESET', 'Load Preset'), body, [
+            { text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+            { text: this.t('COM_PHOCAMOSAIC_LOAD', 'Load'), class: 'mosaic-dialog-btn-primary', onClick: () => {
                 const name = document.getElementById('preset-select').value;
                 if (!name || !presets[name]) return;
                 
@@ -2403,28 +3365,28 @@ class EnhancedMosaicEditor {
     }
 
     applyAllFilters() {
-       // console.log('applyAllFilters called');
-       // console.log('Active filters to apply:', this.activeFilters);
-       // console.log('Number of filters:', this.activeFilters.length);
-        
-        // Start from original image
-        this.canvas.width = this.originalImage.width;
-        this.canvas.height = this.originalImage.height;
-        this.ctx.drawImage(this.originalImage, 0, 0);
-        
-        let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Apply each filter in sequence
-        for (const filter of this.activeFilters) {
-            //console.log('Applying filter:', filter.name, 'with intensity:', filter.intensity);
-            imageData = this.applyFilter(imageData, filter.name, filter.intensity);
+           // console.log('applyAllFilters called');
+           // console.log('Active filters to apply:', this.activeFilters);
+           // console.log('Number of filters:', this.activeFilters.length);
+
+            // Start from original image
+            this.canvas.width = this.originalImage.width;
+            this.canvas.height = this.originalImage.height;
+            this.ctx.drawImage(this.originalImage, 0, 0);
+
+            let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+
+            // Apply each filter in sequence
+            for (const filter of this.activeFilters) {
+                //console.log('Applying filter:', filter.name, 'with intensity:', filter.intensity);
+                imageData = this.applyFilter(imageData, filter.name, filter.intensity, filter.params || {});
+            }
+
+            this.ctx.putImageData(imageData, 0, 0);
+            this.pushHistory();
+
+            //console.log('All filters applied successfully');
         }
-        
-        this.ctx.putImageData(imageData, 0, 0);
-        this.pushHistory();
-        
-        //console.log('All filters applied successfully');
-    }
 
     // ==================== EDIT TOOLS ====================
     
@@ -2525,21 +3487,21 @@ class EnhancedMosaicEditor {
     
     showResizeDialog() {
         const body = `
-            <label class="mosaic-dialog-label">Width (px):</label>
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_WIDTH', 'Width')} (px):</label>
             <input type="number" id="resize-width" class="mosaic-dialog-input" value="${this.canvas.width}" min="1">
             
-            <label class="mosaic-dialog-label">Height (px):</label>
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_HEIGHT', 'Height')} (px):</label>
             <input type="number" id="resize-height" class="mosaic-dialog-input" value="${this.canvas.height}" min="1">
             
             <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
                 <input type="checkbox" id="resize-aspect" checked>
-                <span class="mosaic-dialog-label" style="margin: 0;">Maintain aspect ratio</span>
+                <span class="mosaic-dialog-label" style="margin: 0;">${this.t('COM_PHOCAMOSAIC_MAINTAIN_ASPECT', 'Maintain aspect ratio')}</span>
             </label>
         `;
         
-        this.showModal('Resize Image', body, [
-            { text: 'Cancel', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-            { text: 'Resize', class: 'mosaic-dialog-btn-primary', onClick: () => this.applyResize() }
+        this.showModal(this.t('COM_PHOCAMOSAIC_RESIZE_IMAGE', 'Resize Image'), body, [
+            { text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+            { text: this.t('COM_PHOCAMOSAIC_RESIZE', 'Resize'), class: 'mosaic-dialog-btn-primary', onClick: () => this.applyResize() }
         ]);
         
         const widthInput = document.getElementById('resize-width');
@@ -2596,13 +3558,17 @@ class EnhancedMosaicEditor {
             height: this.canvas.height * 0.8
         };
         
+        // Initialize aspect ratio settings
+        this.cropMaintainAspect = false;
+        this.cropAspectRatio = this.cropArea.width / this.cropArea.height;
+        
         // Save current state
         this.cropBaseImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         
         // Show crop overlay
         this.drawCropOverlay();
         
-        // Setup mouse events for dragging/resizing
+        // Setup mouse and touch events for dragging/resizing
         this.setupCropMouseEvents();
         
         // Show controls in right panel
@@ -2615,14 +3581,95 @@ class EnhancedMosaicEditor {
                     <p>${this.t('COM_PHOCAMOSAIC_CROP_DRAG_RESIZE', 'Drag corners to resize')}</p>
                 </div>
                 <div style="margin-bottom: 1rem;">
-                    <label class="mosaic-dialog-label" style="font-size: 12px;">X: <span id="crop-x">${Math.round(this.cropArea.x)}</span></label><br>
-                    <label class="mosaic-dialog-label" style="font-size: 12px;">Y: <span id="crop-y">${Math.round(this.cropArea.y)}</span></label><br>
-                    <label class="mosaic-dialog-label" style="font-size: 12px;">${this.t('COM_PHOCAMOSAIC_WIDTH', 'Width')}: <span id="crop-w">${Math.round(this.cropArea.width)}</span></label><br>
-                    <label class="mosaic-dialog-label" style="font-size: 12px;">${this.t('COM_PHOCAMOSAIC_HEIGHT', 'Height')}: <span id="crop-h">${Math.round(this.cropArea.height)}</span></label>
+                    <label class="mosaic-dialog-label" style="font-size: 12px;">${this.t('COM_PHOCAMOSAIC_WIDTH', 'Width')}:</label>
+                    <input type="number" id="crop-width-input" value="${Math.round(this.cropArea.width)}" min="10" max="${this.canvas.width}" class="mosaic-dialog-input" style="margin-bottom: 0.5rem;">
+                    
+                    <label class="mosaic-dialog-label" style="font-size: 12px;">${this.t('COM_PHOCAMOSAIC_HEIGHT', 'Height')}:</label>
+                    <input type="number" id="crop-height-input" value="${Math.round(this.cropArea.height)}" min="10" max="${this.canvas.height}" class="mosaic-dialog-input" style="margin-bottom: 0.5rem;">
+                    
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 12px; margin-top: 0.5rem;">
+                        <input type="checkbox" id="crop-maintain-aspect" style="width: auto;">
+                        ${this.t('COM_PHOCAMOSAIC_MAINTAIN_ASPECT', 'Maintain aspect ratio')}
+                    </label>
+                </div>
+                <div style="margin-bottom: 1rem; font-size: 11px; color: var(--mosaic-text-secondary);">
+                    <label class="mosaic-dialog-label" style="font-size: 11px;">Position:</label>
+                    X: <span id="crop-x">${Math.round(this.cropArea.x)}</span>, 
+                    Y: <span id="crop-y">${Math.round(this.cropArea.y)}</span>
                 </div>
                 <button type="button" id="apply-crop" class="mosaic-dialog-btn mosaic-dialog-btn-primary" style="width: 100%; margin-bottom: 0.5rem;">${this.t('COM_PHOCAMOSAIC_APPLY_CROP', 'Apply Crop')}</button>
                 <button type="button" id="cancel-crop" class="mosaic-dialog-btn mosaic-dialog-btn-secondary" style="width: 100%;">${this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel')}</button>
             `;
+            
+            // Width input handler
+            document.getElementById('crop-width-input').addEventListener('input', (e) => {
+                let newWidth = parseInt(e.target.value) || 10;
+                newWidth = Math.max(10, Math.min(this.canvas.width, newWidth));
+                
+                this.cropArea.width = newWidth;
+                
+                if (this.cropMaintainAspect) {
+                    const newHeight = newWidth / this.cropAspectRatio;
+                    if (newHeight <= this.canvas.height) {
+                        this.cropArea.height = newHeight;
+                        document.getElementById('crop-height-input').value = Math.round(newHeight);
+                    } else {
+                        // Height would exceed canvas, adjust width back
+                        this.cropArea.height = this.canvas.height;
+                        this.cropArea.width = this.cropArea.height * this.cropAspectRatio;
+                        e.target.value = Math.round(this.cropArea.width);
+                    }
+                }
+                
+                // Constrain position
+                this.cropArea.x = Math.min(this.cropArea.x, this.canvas.width - this.cropArea.width);
+                this.cropArea.y = Math.min(this.cropArea.y, this.canvas.height - this.cropArea.height);
+                
+                // Update position display only
+                document.getElementById('crop-x').textContent = Math.round(this.cropArea.x);
+                document.getElementById('crop-y').textContent = Math.round(this.cropArea.y);
+                
+                this.drawCropOverlay();
+            });
+            
+            // Height input handler
+            document.getElementById('crop-height-input').addEventListener('input', (e) => {
+                let newHeight = parseInt(e.target.value) || 10;
+                newHeight = Math.max(10, Math.min(this.canvas.height, newHeight));
+                
+                this.cropArea.height = newHeight;
+                
+                if (this.cropMaintainAspect) {
+                    const newWidth = newHeight * this.cropAspectRatio;
+                    if (newWidth <= this.canvas.width) {
+                        this.cropArea.width = newWidth;
+                        document.getElementById('crop-width-input').value = Math.round(newWidth);
+                    } else {
+                        // Width would exceed canvas, adjust height back
+                        this.cropArea.width = this.canvas.width;
+                        this.cropArea.height = this.cropArea.width / this.cropAspectRatio;
+                        e.target.value = Math.round(this.cropArea.height);
+                    }
+                }
+                
+                // Constrain position
+                this.cropArea.x = Math.min(this.cropArea.x, this.canvas.width - this.cropArea.width);
+                this.cropArea.y = Math.min(this.cropArea.y, this.canvas.height - this.cropArea.height);
+                
+                // Update position display only
+                document.getElementById('crop-x').textContent = Math.round(this.cropArea.x);
+                document.getElementById('crop-y').textContent = Math.round(this.cropArea.y);
+                
+                this.drawCropOverlay();
+            });
+            
+            // Aspect ratio checkbox handler
+            document.getElementById('crop-maintain-aspect').addEventListener('change', (e) => {
+                this.cropMaintainAspect = e.target.checked;
+                if (this.cropMaintainAspect) {
+                    this.cropAspectRatio = this.cropArea.width / this.cropArea.height;
+                }
+            });
             
             document.getElementById('apply-crop').addEventListener('click', () => this.applyCrop());
             document.getElementById('cancel-crop').addEventListener('click', () => this.cancelCrop());
@@ -2639,9 +3686,12 @@ class EnhancedMosaicEditor {
         
         const getCanvasCoords = (e) => {
             const rect = this.canvas.getBoundingClientRect();
+            // Handle both mouse and touch events
+            const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
             return {
-                x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-                y: (e.clientY - rect.top) * (this.canvas.height / rect.height)
+                x: (clientX - rect.left) * (this.canvas.width / rect.width),
+                y: (clientY - rect.top) * (this.canvas.height / rect.height)
             };
         };
         
@@ -2693,27 +3743,59 @@ class EnhancedMosaicEditor {
                 const dx = coords.x - startX;
                 const dy = coords.y - startY;
                 
-                switch (resizeHandle) {
-                    case 'se':
-                        this.cropArea.width = Math.max(50, startCropArea.width + dx);
-                        this.cropArea.height = Math.max(50, startCropArea.height + dy);
-                        break;
-                    case 'sw':
-                        this.cropArea.x = Math.min(startCropArea.x + startCropArea.width - 50, startCropArea.x + dx);
-                        this.cropArea.width = startCropArea.width - (this.cropArea.x - startCropArea.x);
-                        this.cropArea.height = Math.max(50, startCropArea.height + dy);
-                        break;
-                    case 'ne':
-                        this.cropArea.width = Math.max(50, startCropArea.width + dx);
-                        this.cropArea.y = Math.min(startCropArea.y + startCropArea.height - 50, startCropArea.y + dy);
-                        this.cropArea.height = startCropArea.height - (this.cropArea.y - startCropArea.y);
-                        break;
-                    case 'nw':
-                        this.cropArea.x = Math.min(startCropArea.x + startCropArea.width - 50, startCropArea.x + dx);
-                        this.cropArea.width = startCropArea.width - (this.cropArea.x - startCropArea.x);
-                        this.cropArea.y = Math.min(startCropArea.y + startCropArea.height - 50, startCropArea.y + dy);
-                        this.cropArea.height = startCropArea.height - (this.cropArea.y - startCropArea.y);
-                        break;
+                if (this.cropMaintainAspect) {
+                    // Maintain aspect ratio during resize
+                    switch (resizeHandle) {
+                        case 'se':
+                            // Use width change as primary, calculate height
+                            const newWidth = Math.max(50, startCropArea.width + dx);
+                            this.cropArea.width = newWidth;
+                            this.cropArea.height = newWidth / this.cropAspectRatio;
+                            break;
+                        case 'sw':
+                            const widthSW = Math.max(50, startCropArea.width - dx);
+                            this.cropArea.width = widthSW;
+                            this.cropArea.height = widthSW / this.cropAspectRatio;
+                            this.cropArea.x = startCropArea.x + startCropArea.width - this.cropArea.width;
+                            break;
+                        case 'ne':
+                            const widthNE = Math.max(50, startCropArea.width + dx);
+                            this.cropArea.width = widthNE;
+                            this.cropArea.height = widthNE / this.cropAspectRatio;
+                            this.cropArea.y = startCropArea.y + startCropArea.height - this.cropArea.height;
+                            break;
+                        case 'nw':
+                            const widthNW = Math.max(50, startCropArea.width - dx);
+                            this.cropArea.width = widthNW;
+                            this.cropArea.height = widthNW / this.cropAspectRatio;
+                            this.cropArea.x = startCropArea.x + startCropArea.width - this.cropArea.width;
+                            this.cropArea.y = startCropArea.y + startCropArea.height - this.cropArea.height;
+                            break;
+                    }
+                } else {
+                    // Free resize without aspect ratio
+                    switch (resizeHandle) {
+                        case 'se':
+                            this.cropArea.width = Math.max(50, startCropArea.width + dx);
+                            this.cropArea.height = Math.max(50, startCropArea.height + dy);
+                            break;
+                        case 'sw':
+                            this.cropArea.x = Math.min(startCropArea.x + startCropArea.width - 50, startCropArea.x + dx);
+                            this.cropArea.width = startCropArea.width - (this.cropArea.x - startCropArea.x);
+                            this.cropArea.height = Math.max(50, startCropArea.height + dy);
+                            break;
+                        case 'ne':
+                            this.cropArea.width = Math.max(50, startCropArea.width + dx);
+                            this.cropArea.y = Math.min(startCropArea.y + startCropArea.height - 50, startCropArea.y + dy);
+                            this.cropArea.height = startCropArea.height - (this.cropArea.y - startCropArea.y);
+                            break;
+                        case 'nw':
+                            this.cropArea.x = Math.min(startCropArea.x + startCropArea.width - 50, startCropArea.x + dx);
+                            this.cropArea.width = startCropArea.width - (this.cropArea.x - startCropArea.x);
+                            this.cropArea.y = Math.min(startCropArea.y + startCropArea.height - 50, startCropArea.y + dy);
+                            this.cropArea.height = startCropArea.height - (this.cropArea.y - startCropArea.y);
+                            break;
+                    }
                 }
                 
                 // Constrain to canvas
@@ -2757,6 +3839,24 @@ class EnhancedMosaicEditor {
         this.canvas.addEventListener('mousemove', this.cropMouseMove);
         this.canvas.addEventListener('mouseup', this.cropMouseUp);
         this.canvas.addEventListener('mouseleave', this.cropMouseUp);
+        
+        // Add touch event support for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.cropMouseDown(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.cropMouseMove(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.cropMouseUp();
+        });
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.cropMouseUp();
+        });
     }
     
     drawCropOverlay() {
@@ -2812,8 +3912,8 @@ class EnhancedMosaicEditor {
     updateCropInfo() {
         document.getElementById('crop-x').textContent = Math.round(this.cropArea.x);
         document.getElementById('crop-y').textContent = Math.round(this.cropArea.y);
-        document.getElementById('crop-w').textContent = Math.round(this.cropArea.width);
-        document.getElementById('crop-h').textContent = Math.round(this.cropArea.height);
+        document.getElementById('crop-width-input').value = Math.round(this.cropArea.width);
+        document.getElementById('crop-height-input').value = Math.round(this.cropArea.height);
     }
     
     applyCrop() {
@@ -3011,10 +4111,10 @@ class EnhancedMosaicEditor {
         const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
         
         const body = `
-            <label class="mosaic-dialog-label">Filename:</label>
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_FILENAME', 'Filename')}:</label>
             <input type="text" id="save-as-filename" class="mosaic-dialog-input" value="${nameWithoutExt}">
             
-            <label class="mosaic-dialog-label">Format:</label>
+            <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_FORMAT', 'Format')}:</label>
             <select id="save-as-format" class="mosaic-dialog-select">
                 <option value="jpg">JPEG</option>
                 <option value="png">PNG</option>
@@ -3022,14 +4122,14 @@ class EnhancedMosaicEditor {
             </select>
             
             <div id="quality-control">
-                <label class="mosaic-dialog-label">Quality: <span id="quality-value">95</span>%</label>
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_QUALITY', 'Quality')}: <span id="quality-value">95</span>%</label>
                 <input type="range" id="save-as-quality" min="1" max="100" value="95" style="width: 100%;">
             </div>
         `;
         
-        this.showModal('Save As', body, [
-            { text: 'Cancel', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-            { text: 'Save', class: 'mosaic-dialog-btn-primary', onClick: () => this.saveAs() }
+        this.showModal(this.t('COM_PHOCAMOSAIC_SAVE_AS', 'Save As'), body, [
+            { text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+            { text: this.t('COM_PHOCAMOSAIC_SAVE', 'Save'), class: 'mosaic-dialog-btn-primary', onClick: () => this.saveAs() }
         ]);
         
         // Quality slider handler
@@ -3095,7 +4195,17 @@ class EnhancedMosaicEditor {
                 // Reload page with new image after delay
                 setTimeout(() => {
                     const newPath = result.path || `${this.imagePath.substring(0, this.imagePath.lastIndexOf('/'))}/${filename}.${format}`;
-                    window.location.href = `index.php?option=com_phocamosaic&view=editor&path=${encodeURIComponent(newPath)}`;
+                    
+                    // Preserve tmpl and e_name parameters if we're in component mode
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const tmpl = urlParams.get('tmpl');
+                    const eName = urlParams.get('e_name');
+                    
+                    let extraParams = '';
+                    if (tmpl) extraParams += `&tmpl=${tmpl}`;
+                    if (eName) extraParams += `&e_name=${eName}`;
+                    
+                    window.location.href = `index.php?option=com_phocamosaic&view=editor&path=${encodeURIComponent(newPath)}${extraParams}`;
                 }, 2000);
             } else {
                 this.showToast(this.t('COM_PHOCAMOSAIC_FAILED_SAVE', 'Failed to save image') + ': ' + (result.message || this.t('COM_PHOCAMOSAIC_ERROR_UNKNOWN', 'Unknown error')), 'error');
@@ -3164,12 +4274,16 @@ class EnhancedMosaicEditor {
     }
 
     cancel() {
-        this.showModal('Discard Changes', 'Are you sure you want to discard all changes?', [
-            { text: 'No', class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
-            { text: 'Yes, Discard', class: 'mosaic-dialog-btn-primary', onClick: () => {
-                window.location.href = 'index.php?option=com_media';
-            }}
-        ]);
+        this.showModal(
+            this.t('COM_PHOCAMOSAIC_DISCARD_CHANGES', 'Discard Changes'), 
+            this.t('COM_PHOCAMOSAIC_DISCARD_CONFIRM', 'Are you sure you want to discard all changes?'), 
+            [
+                { text: this.t('COM_PHOCAMOSAIC_NO', 'No'), class: 'mosaic-dialog-btn-secondary', onClick: () => this.closeModal() },
+                { text: this.t('COM_PHOCAMOSAIC_YES_DISCARD', 'Yes, Discard'), class: 'mosaic-dialog-btn-primary', onClick: () => {
+                    window.location.href = 'index.php?option=com_media';
+                }}
+            ]
+        );
     }
 }
 

@@ -10,6 +10,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
@@ -19,12 +20,29 @@ $params = ComponentHelper::getParams('com_phocamosaic');
 $maxUploadSize = $params->get('max_upload_size', 5242880); // Default 5 MB in bytes
 $maxUploadSizeMB = round($maxUploadSize / 1048576, 1); // Convert to MB for display
 
+// Check if we're in editor mode (opened from editor plugin)
+$app = $this->app ?? Factory::getApplication();
+$input = $app->input;
+$editorMode = $input->get('tmpl') === 'component' && $input->get('e_name', '') !== '';
+$editorName = $input->get('e_name', '');
+
 // Pass config to JavaScript
 $this->document->addScriptOptions('com_phocamosaic.upload', [
     'maxUploadSize' => $maxUploadSize,
     'maxUploadSizeMB' => $maxUploadSizeMB
 ]);
+
+$this->document->addScriptOptions('com_phocamosaic.editor', [
+    'editorMode' => $editorMode,
+    'editorName' => $editorName
+]);
 ?>
+
+<?php if ($input->get('tmpl') === 'component') : ?>
+<div class="subhead noshadow mb-3">
+    <?php echo $this->getDocument()->getToolbar('toolbar')->render(); ?>
+</div>
+<?php endif; ?>
 
 <div class="mosaic-explorer">
     <div class="explorer-header">
@@ -34,6 +52,13 @@ $this->document->addScriptOptions('com_phocamosaic.upload', [
                    class="form-control" 
                    placeholder="<?php echo Text::_('COM_PHOCAMOSAIC_SEARCH_IMAGES'); ?>"
                    aria-label="<?php echo Text::_('COM_PHOCAMOSAIC_SEARCH_IMAGES'); ?>">
+        </div>
+        <div class="mosaic-breadcrumb-bar">
+            <nav aria-label="<?php echo Text::_('COM_PHOCAMOSAIC_BREADCRUMB'); ?>">
+                <ol class="mosaic-breadcrumb" id="folder-breadcrumb">
+                    <li class="mosaic-breadcrumb-item active"><?php echo Text::_('COM_PHOCAMOSAIC_ROOT'); ?></li>
+                </ol>
+            </nav>
         </div>
     </div>
     
@@ -69,6 +94,14 @@ $this->document->addScriptOptions('com_phocamosaic.upload', [
             </div>
         </div>
     </div>
+
+    <!-- Mobile folder toggle button -->
+    <button type="button" class="mobile-folder-toggle" id="mobile-folder-toggle" aria-label="<?php echo Text::_('COM_PHOCAMOSAIC_TOGGLE_FOLDERS'); ?>">
+        📁
+    </button>
+
+    <!-- Folder tree overlay for mobile -->
+    <div class="folder-tree-overlay" id="folder-tree-overlay"></div>
 
     <!-- Hidden file input for upload -->
     <input type="file" id="file-upload-input" accept="image/*" multiple style="display: none;">

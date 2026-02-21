@@ -52,6 +52,53 @@
         </field>
         
         <field
+            name="convert_to_webp"
+            type="radio"
+            label="COM_PHOCAMOSAIC_CONVERT_TO_WEBP"
+            description="COM_PHOCAMOSAIC_CONVERT_TO_WEBP_DESC"
+            layout="joomla.form.field.radio.switcher"
+            default="0"
+            class="btn-group btn-group-yesno"
+        >
+        <option value="0">JNO</option>    
+        <option value="1">JYES</option>
+            
+        </field>
+        
+        <field
+            name="upload_max_width"
+            type="number"
+            label="COM_PHOCAMOSAIC_UPLOAD_MAX_WIDTH"
+            description="COM_PHOCAMOSAIC_UPLOAD_MAX_WIDTH_DESC"
+            default="0"
+            min="0"
+            step="1"
+        />
+        
+        <field
+            name="upload_max_height"
+            type="number"
+            label="COM_PHOCAMOSAIC_UPLOAD_MAX_HEIGHT"
+            description="COM_PHOCAMOSAIC_UPLOAD_MAX_HEIGHT_DESC"
+            default="0"
+            min="0"
+            step="1"
+        />
+        
+        <field
+            name="upload_resize_method"
+            type="list"
+            label="COM_PHOCAMOSAIC_UPLOAD_RESIZE_METHOD"
+            description="COM_PHOCAMOSAIC_UPLOAD_RESIZE_METHOD_DESC"
+            default="width"
+        >
+            <option value="none">COM_PHOCAMOSAIC_RESIZE_NONE</option>
+            <option value="width">COM_PHOCAMOSAIC_RESIZE_WIDTH_PRIORITY</option>
+            <option value="height">COM_PHOCAMOSAIC_RESIZE_HEIGHT_PRIORITY</option>
+            <option value="crop">COM_PHOCAMOSAIC_RESIZE_CROP_CENTER</option>
+        </field>
+        
+        <field
             name="storage_method"
             type="list"
             label="COM_PHOCAMOSAIC_STORAGE_METHOD"

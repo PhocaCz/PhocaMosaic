@@ -84,6 +84,28 @@ $this->document->addScriptOptions('com_phocamosaic.translations', [
     'PRESET_LOADED' => Text::_('COM_PHOCAMOSAIC_PRESET_LOADED'),
     'FAILED_SAVE' => Text::_('COM_PHOCAMOSAIC_FAILED_SAVE'),
     'FAILED_LOAD' => Text::_('COM_PHOCAMOSAIC_FAILED_LOAD'),
+    // Advanced Filter Controls
+    'TINT_COLOR' => Text::_('COM_PHOCAMOSAIC_TINT_COLOR'),
+    'FILTER_COLOR' => Text::_('COM_PHOCAMOSAIC_FILTER_COLOR'),
+    'FOCAL_SIZE' => Text::_('COM_PHOCAMOSAIC_FOCAL_SIZE'),
+    'FEATHER' => Text::_('COM_PHOCAMOSAIC_FEATHER'),
+    'SHADE' => Text::_('COM_PHOCAMOSAIC_SHADE'),
+    'BLUR_EDGES' => Text::_('COM_PHOCAMOSAIC_BLUR_EDGES'),
+    'GRAIN' => Text::_('COM_PHOCAMOSAIC_GRAIN'),
+    'RADIUS' => Text::_('COM_PHOCAMOSAIC_RADIUS'),
+    'STRENGTH' => Text::_('COM_PHOCAMOSAIC_STRENGTH'),
+    'BLOOM' => Text::_('COM_PHOCAMOSAIC_BLOOM'),
+    'BRIGHTNESS' => Text::_('COM_PHOCAMOSAIC_BRIGHTNESS'),
+    'SHADOW_COLOR' => Text::_('COM_PHOCAMOSAIC_SHADOW_COLOR'),
+    'HIGHLIGHT_COLOR' => Text::_('COM_PHOCAMOSAIC_HIGHLIGHT_COLOR'),
+    'CONTRAST' => Text::_('COM_PHOCAMOSAIC_CONTRAST'),
+    'SIZE' => Text::_('COM_PHOCAMOSAIC_SIZE'),
+    'VIGNETTE_COLOR' => Text::_('COM_PHOCAMOSAIC_VIGNETTE_COLOR'),
+    'ZOOMINESS' => Text::_('COM_PHOCAMOSAIC_ZOOMINESS'),
+    'EDGE_HARDNESS' => Text::_('COM_PHOCAMOSAIC_EDGE_HARDNESS'),
+    'NEON_COLOR' => Text::_('COM_PHOCAMOSAIC_NEON_COLOR'),
+    'COLOR_BRUSH' => Text::_('COM_PHOCAMOSAIC_COLOR_BRUSH'),
+    'DOT_DENSITY' => Text::_('COM_PHOCAMOSAIC_DOT_DENSITY'),
 ]);
 
 // Pass component configuration to JavaScript
@@ -135,7 +157,7 @@ $imagePath = $this->imagePath ?? '';
     </div>
 
     <div class="studio-workspace">
-        <div class="tool-sidebar">
+        <div class="tool-sidebar" id="tool-sidebar">
             <input type="text" class="filter-search" id="filter-search" placeholder="Search filters...">
             
             <div class="tool-group">
@@ -342,6 +364,17 @@ $imagePath = $this->imagePath ?? '';
             <p style="color: var(--mosaic-text-secondary); font-size: 0.875rem;"><?php echo Text::_('COM_PHOCAMOSAIC_SELECT_TOOL'); ?></p>
         </div>
     </div>
+
+    <!-- Mobile hamburger buttons -->
+    <button type="button" class="mobile-filter-toggle" id="mobile-filter-toggle" aria-label="<?php echo Text::_('COM_PHOCAMOSAIC_TOGGLE_FILTERS'); ?>">
+        🎨
+    </button>
+    <button type="button" class="mobile-tool-toggle" id="mobile-tool-toggle" aria-label="<?php echo Text::_('COM_PHOCAMOSAIC_TOGGLE_TOOLS'); ?>">
+        🛠️
+    </button>
+
+    <!-- Overlay for mobile sidebars -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 </div>
 
 <input type="hidden" id="csrf-token" value="<?php echo $token; ?>">

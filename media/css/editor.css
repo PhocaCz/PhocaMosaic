@@ -6,8 +6,11 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  */
 
-/* Light theme colors */
-[data-bs-theme=light] {
+/* ==========================================================================
+ *  Variables & Theming
+ *  ========================================================================== */
+
+:root, [data-bs-theme=light] {
     --ph-mosaic-bg-dark: #f8f9fa;
     --ph-mosaic-bg-medium: #ffffff;
     --ph-mosaic-bg-light: #e9ecef;
@@ -18,22 +21,20 @@
     --ph-mosaic-highlight: #4f46e5;
 }
 
-/* Dark theme colors */
 [data-bs-theme=dark] {
-    --ph-mosaic-bg-dark: #1a1a1a;
-    --ph-mosaic-bg-medium: #2a2a2a;
-    --ph-mosaic-bg-light: #3a3a3a;
-    --ph-mosaic-text-primary: #ffffff;
-    --ph-mosaic-text-secondary: #cccccc;
-    --ph-mosaic-accent: #4a9eff;
-    --ph-mosaic-border: #444444;
-    --ph-mosaic-highlight: #4f46e5;
-
     --ph-mosaic-bg-dark: #0f172a;
     --ph-mosaic-bg-medium: #1e293b;
     --ph-mosaic-bg-light: #334155;
+    --ph-mosaic-text-primary: #ffffff;
+    --ph-mosaic-text-secondary: #cccccc;
+    --ph-mosaic-accent: #4a9eff;
     --ph-mosaic-border: #334155;
+    --ph-mosaic-highlight: #4f46e5;
 }
+
+/* ==========================================================================
+ *  Base Layout & Header
+ *  ========================================================================== */
 
 .admin.com_phocamosaic.view-editor .subhead {
     display: none;
@@ -45,6 +46,7 @@
     height: calc(100vh - 100px);
     background-color: var(--ph-mosaic-bg-dark);
     color: var(--ph-mosaic-text-primary);
+    border-bottom: 1px solid var(--ph-mosaic-border);
 }
 
 .studio-header {
@@ -64,6 +66,7 @@
     font-weight: bold;
     padding: 1em;
 }
+
 .image-filename-path {
     font-size: 80%;
     color: var(--ph-mosaic-text-secondary);
@@ -99,6 +102,10 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ==========================================================================
+ *  Workspace & Tools (Desktop)
+ *  ========================================================================== */
 
 .studio-workspace {
     display: grid;
@@ -143,6 +150,10 @@
     letter-spacing: 0.5px;
 }
 
+h3.tool-group-filter {
+    color: var(--ph-mosaic-highlight);
+}
+
 .tool-btn, .preset-btn {
     width: 100%;
     padding: 0.5rem 0.4rem;
@@ -157,45 +168,10 @@
     font-size: 11px;
 }
 
-h3.tool-group-filter {
-    color: var(--ph-mosaic-highlight);
-}
-
-.tool-btn:hover, .preset-btn:hover {
+.tool-btn:hover, .preset-btn:hover, .tool-btn.active {
     background-color: var(--ph-mosaic-accent);
     color: #ffffff;
     border-color: var(--ph-mosaic-accent);
-}
-
-.tool-btn.active {
-    background-color: var(--ph-mosaic-accent);
-    color: #ffffff;
-    border-color: var(--ph-mosaic-accent);
-}
-
-.canvas-area {
-    display: flex;
-    align-items: start;
-    justify-content: center;
-    padding: 2rem;
-    background-color: var(--ph-mosaic-bg-dark);
-    overflow: auto;
-    position: relative;
-}
-
-#image-canvas {
-    max-width: 100%;
-    max-height: 100%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    /* Transparency checkerboard pattern - lighter colors */
-    background-image: 
-        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    background-color: #f5f5f5;
 }
 
 .tool-panel {
@@ -211,6 +187,44 @@ h3.tool-group-filter {
     margin-bottom: 0.75rem;
     color: var(--ph-mosaic-text-primary);
 }
+
+/* ==========================================================================
+ *  Canvas Area
+ *  ========================================================================== */
+
+.canvas-area {
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--ph-mosaic-bg-dark);
+    overflow: auto;
+    position: relative;
+}
+
+#image-canvas {
+max-width: 100%;
+max-height: 100%;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+background-image:
+linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+background-size: 20px 20px;
+background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+background-color: #f5f5f5;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--ph-mosaic-text-secondary);
+}
+
+/* ==========================================================================
+ *  Controls (Sliders & Pickers)
+ *  ========================================================================== */
 
 .slider-control {
     margin-bottom: 1rem;
@@ -259,12 +273,6 @@ h3.tool-group-filter {
     margin-top: 0.25rem;
 }
 
-.loading-message {
-    text-align: center;
-    padding: 3rem;
-    color: var(--ph-mosaic-text-secondary);
-}
-
 .color-picker-control {
     margin-bottom: 1.5rem;
 }
@@ -277,18 +285,34 @@ h3.tool-group-filter {
     cursor: pointer;
 }
 
-@media (max-width: 1024px) {
-    .studio-workspace {
-        grid-template-columns: 1fr;
-    }
-    
-    .tool-sidebar,
-    .tool-panel {
-        display: none;
-    }
+/* Try to hide the native eyedropper button (browser-specific) */
+.filter-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
 }
 
-/* Toast Notifications */
+.filter-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+/* Hide eyedropper in Chrome/Edge */
+.filter-color-picker::-webkit-eyedropper-button {
+    display: none !important;
+}
+
+/* Firefox */
+.filter-color-picker::-moz-color-swatch {
+    border: none;
+}
+
+.filter-color-picker::-moz-eyedropper-button {
+    display: none !important;
+}
+
+/* ==========================================================================
+ *  Toast Notifications
+ *  ========================================================================== */
+
 .toast-container {
     position: fixed;
     bottom: 20px;
@@ -314,22 +338,10 @@ h3.tool-group-filter {
     color: #ffffff;
 }
 
-.toast.success {
-    background-color: #28a745;
-}
-
-.toast.error {
-    background-color: #dc3545;
-}
-
-.toast.info {
-    background-color: #17a2b8;
-}
-
-.toast.warning {
-    background-color: #ffc107;
-    color: #000000;
-}
+.toast.success { background-color: #28a745; }
+.toast.error { background-color: #dc3545; }
+.toast.info { background-color: #17a2b8; }
+.toast.warning { background-color: #ffc107; color: #000000; }
 
 .toast-icon {
     font-size: 20px;
@@ -340,29 +352,10 @@ h3.tool-group-filter {
     flex: 1;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
+/* ==========================================================================
+ *  Mosaic Dialogs (Modals)
+ *  ========================================================================== */
 
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-
-/* Mosaic Dialog (renamed to avoid Joomla Bootstrap conflicts) */
 .mosaic-dialog-overlay {
     position: fixed;
     top: 0;
@@ -410,17 +403,7 @@ h3.tool-group-filter {
     justify-content: flex-end;
 }
 
-.mosaic-dialog-input {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    background: var(--ph-mosaic-bg-light);
-    color: var(--ph-mosaic-text-primary);
-    border: 1px solid var(--ph-mosaic-border);
-    border-radius: 4px;
-    font-size: 14px;
-}
-
+.mosaic-dialog-input,
 .mosaic-dialog-select {
     width: 100%;
     padding: 0.5rem;
@@ -468,18 +451,258 @@ h3.tool-group-filter {
     background: var(--ph-mosaic-bg-dark);
 }
 
+/* ==========================================================================
+ *  Animations
+ *  ========================================================================== */
+
+@keyframes slideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
 @keyframes scaleIn {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================================
+ *  Media Queries (Responsive Breakpoints)
+ *  ========================================================================== */
+
+/* Tablet Layout */
+@media (max-width: 1024px) {
+    .studio-workspace {
+        grid-template-columns: 1fr;
     }
-    to {
-        transform: scale(1);
-        opacity: 1;
+
+    .tool-sidebar,
+    .tool-panel {
+        display: none;
     }
+}
+
+/* Mobile Layout */
+@media (max-width: 1024px) {
+    .mosaic-studio {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .studio-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .image-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 1rem;
+        padding: 0.5rem;
+        width: 100%;
+    }
+
+    .image-filename-path {
+        font-size: 70%;
+        padding: 0.2em 0.75em;
+        word-break: break-all;
+    }
+
+    .studio-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .studio-actions button {
+        flex: 1 1 auto;
+        min-width: 80px;
+        padding: 0.6rem 0.75rem;
+        font-size: 12px;
+    }
+
+    .studio-workspace {
+        height: auto;
+    }
+
+    .canvas-area {
+        padding: 1rem;
+        min-height: 50vh;
+    }
+
+    #image-canvas {
+    height: auto;
+    }
+
+    /* Mobile Filter & Tool Panels - Positioning Above Joomla UI */
+    .mobile-filter-toggle,
+    .mobile-tool-toggle {
+        display: flex;
+    }
+
+    .mobile-filter-toggle {
+        position: fixed;
+        bottom: 80px;
+        left: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--ph-mosaic-accent);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-size: 24px;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        cursor: pointer;
+    }
+
+    .mobile-tool-toggle {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--ph-mosaic-accent);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-size: 24px;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        cursor: pointer;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        /*background: rgba(0, 0, 0, 0.5);*/
+        z-index: 9999;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .tool-sidebar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 40vh;
+        z-index: 10000; /* Above Joomla components */
+        border-right: none;
+        border-top: 2px solid var(--ph-mosaic-border);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-sidebar.mobile-open {
+        display: block;
+    }
+
+    .tool-panel {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 60vh;
+        z-index: 10000; /* Match sidebar layer */
+        border-left: none;
+        border-top: 2px solid var(--ph-mosaic-border);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-panel.mobile-open {
+        display: block;
+    }
+
+    /* Toast and Dialog Positioning */
+    .toast-container {
+        bottom: 90px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .mosaic-dialog-box {
+        min-width: auto;
+        width: 90%;
+        max-width: 90%;
+        margin: 1rem;
+    }
+
+    .mosaic-dialog-header,
+    .mosaic-dialog-body,
+    .mosaic-dialog-footer {
+        padding: 1rem;
+    }
+
+    .mosaic-dialog-footer {
+        flex-direction: column;
+    }
+
+    .mosaic-dialog-btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1025px) {
+    .mobile-filter-toggle,
+    .mobile-tool-toggle {
+        display: none;
+    }
+}
+
+/* Small Mobile Layout */
+@media (max-width: 480px) {
+    .studio-actions button {
+        font-size: 11px;
+        padding: 0.5rem 0.5rem;
+        min-width: 70px;
+    }
+
+    .image-info {
+        font-size: 0.9rem;
+    }
+
+    .tool-group h3 {
+        font-size: 0.6rem;
+    }
+
+    .tool-btn {
+        font-size: 10px;
+        padding: 0.4rem 0.3rem;
+    }
+}
+
+
+.ph-logo-product {
+    width: 30vw;
+    height: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }

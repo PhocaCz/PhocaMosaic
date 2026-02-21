@@ -82,6 +82,15 @@ class HtmlView extends BaseHtmlView
             'COM_PHOCAMOSAIC_NO_IMAGES_FOUND',
             'COM_PHOCAMOSAIC_NO_PREVIEW',
             'COM_PHOCAMOSAIC_SHOW_INFO',
+            'COM_PHOCAMOSAIC_INSERT',
+            'COM_PHOCAMOSAIC_EDIT',
+            'COM_PHOCAMOSAIC_INSERT_IMAGE',
+            'COM_PHOCAMOSAIC_IMAGE_ALT',
+            'COM_PHOCAMOSAIC_IMAGE_LAZY_LOAD',
+            'COM_PHOCAMOSAIC_IMAGE_CLASS',
+            'COM_PHOCAMOSAIC_FIGURE_CLASS',
+            'COM_PHOCAMOSAIC_FIGURE_CAPTION',
+            'COM_PHOCAMOSAIC_CANCEL',
             'COM_PHOCAMOSAIC_RENAME',
             'COM_PHOCAMOSAIC_DELETE',
             'COM_PHOCAMOSAIC_ERROR_FILENAME_EMPTY',
@@ -108,6 +117,11 @@ class HtmlView extends BaseHtmlView
      */
     protected function addToolbar(): void
     {
+
+        $tmpl    = Factory::getApplication()->getInput()->getCmd('tmpl');
+        $toolbar = $this->getDocument()->getToolbar();
+        $user    = $this->getCurrentUser();
+
         ToolbarHelper::title(Text::_('COM_PHOCAMOSAIC_EXPLORER'), 'picture');
         
         // Get toolbar instance
@@ -132,9 +146,15 @@ class HtmlView extends BaseHtmlView
             ->buttonClass('btn btn-danger')
             ->onclick('if(window.explorerController){window.explorerController.showDeleteBackupsModal();}');
         
-        ToolbarHelper::preferences('com_phocamosaic');
 
-        ToolbarHelper::divider();
-        ToolbarHelper::help('screen.phocamosaic', true);
+        // Add the preferences button
+        if (($user->authorise('core.admin', 'com_media') || $user->authorise('core.options', 'com_media')) && $tmpl !== 'component') {
+            $toolbar->preferences('com_phocamosaic');
+            $toolbar->divider();
+        }
+
+        if ($tmpl !== 'component') {
+            $toolbar->help('screen.phocamosaic', true);
+        }
     }
 }

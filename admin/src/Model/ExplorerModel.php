@@ -399,6 +399,33 @@ class ExplorerModel extends BaseModel
             // Move uploaded file
             if (move_uploaded_file($file['tmp_name'], $destination)) {
                 chmod($destination, 0644);
+                
+                // Resize/crop image if dimensions are configured
+                $maxWidth = (int) $params->get('upload_max_width', 0);
+                $maxHeight = (int) $params->get('upload_max_height', 0);
+                $resizeMethod = $params->get('upload_resize_method', 'none');
+                
+                if (($maxWidth > 0 || $maxHeight > 0) && $resizeMethod !== 'none') {
+                    $resizedDestination = $this->resizeUploadedImage($destination, $ext, $maxWidth, $maxHeight, $resizeMethod);
+                    if ($resizedDestination !== false) {
+                        $destination = $resizedDestination;
+                    }
+                    // If resize fails, keep the original file
+                }
+                
+                // Convert to WebP if enabled and not already WebP
+                $convertToWebP = $params->get('convert_to_webp', 0);
+                if ($convertToWebP && $ext !== 'webp') {
+                    $webpDestination = $this->convertImageToWebP($destination, $ext);
+                    if ($webpDestination !== false) {
+                        // Delete original file after successful conversion
+                        @unlink($destination);
+                        $destination = $webpDestination;
+                        $ext = 'webp'; // Update extension for potential further processing
+                    }
+                    // If conversion fails, keep the original file
+                }
+                
                 $uploaded++;
             } else {
                 $failed++;
@@ -440,6 +467,230 @@ class ExplorerModel extends BaseModel
             default:
                 return Text::_('COM_PHOCAMOSAIC_ERROR_UPLOAD_UNKNOWN');
         }
+    }
+
+    /**
+     * Convert an image to WebP format
+     *
+     * @param   string  $sourcePath  Path to source image
+     * @param   string  $sourceExt   Source file extension (jpg, png, gif)
+     *
+     * @return  string|false  Path to WebP file on success, false on failure
+     *
+     * @since   6.0.0
+     */
+    private function convertImageToWebP(string $sourcePath, string $sourceExt)
+    {
+        // Check if WebP support is available
+        if (!function_exists('imagewebp')) {
+            return false;
+        }
+
+        // Load source image based on type
+        $sourceImage = false;
+        switch (strtolower($sourceExt)) {
+            case 'jpg':
+            case 'jpeg':
+                $sourceImage = @imagecreatefromjpeg($sourcePath);
+                break;
+            case 'png':
+                $sourceImage = @imagecreatefrompng($sourcePath);
+                break;
+            case 'gif':
+                $sourceImage = @imagecreatefromgif($sourcePath);
+                break;
+        }
+
+        if ($sourceImage === false) {
+            return false;
+        }
+
+        // Get quality setting from component configuration
+        $params = ComponentHelper::getParams('com_phocamosaic');
+        $quality = (int) $params->get('image_quality', 90);
+
+        // Generate WebP filename
+        $pathInfo = pathinfo($sourcePath);
+        $webpPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.webp';
+
+        // Convert to WebP
+        $success = imagewebp($sourceImage, $webpPath, $quality);
+        imagedestroy($sourceImage);
+
+        if ($success) {
+            chmod($webpPath, 0644);
+            return $webpPath;
+        }
+
+        return false;
+    }
+
+    /**
+     * Resize or crop uploaded image according to configured dimensions
+     *
+     * @param   string  $sourcePath    Path to source image
+     * @param   string  $sourceExt     Source file extension
+     * @param   int     $maxWidth      Maximum width (0 = no limit)
+     * @param   int     $maxHeight     Maximum height (0 = no limit)
+     * @param   string  $resizeMethod  Resize method: width, height, crop
+     *
+     * @return  string|false  Path to resized file on success, false on failure
+     *
+     * @since   6.0.0
+     */
+    private function resizeUploadedImage(string $sourcePath, string $sourceExt, int $maxWidth, int $maxHeight, string $resizeMethod)
+    {
+        // Load source image based on type
+        $sourceImage = false;
+        switch (strtolower($sourceExt)) {
+            case 'jpg':
+            case 'jpeg':
+                $sourceImage = @imagecreatefromjpeg($sourcePath);
+                break;
+            case 'png':
+                $sourceImage = @imagecreatefrompng($sourcePath);
+                break;
+            case 'gif':
+                $sourceImage = @imagecreatefromgif($sourcePath);
+                break;
+            case 'webp':
+                $sourceImage = @imagecreatefromwebp($sourcePath);
+                break;
+        }
+
+        if ($sourceImage === false) {
+            return false;
+        }
+
+        // Get original dimensions
+        $origWidth = imagesx($sourceImage);
+        $origHeight = imagesy($sourceImage);
+
+        // Check if resize is needed
+        $needsResize = false;
+        if ($maxWidth > 0 && $origWidth > $maxWidth) {
+            $needsResize = true;
+        }
+        if ($maxHeight > 0 && $origHeight > $maxHeight) {
+            $needsResize = true;
+        }
+
+        if (!$needsResize) {
+            imagedestroy($sourceImage);
+            return $sourcePath; // No resize needed
+        }
+
+        // Calculate new dimensions based on resize method
+        $newWidth = $origWidth;
+        $newHeight = $origHeight;
+        $srcX = 0;
+        $srcY = 0;
+        $srcWidth = $origWidth;
+        $srcHeight = $origHeight;
+
+        switch ($resizeMethod) {
+            case 'width':
+                // Width priority - maintain aspect ratio
+                if ($maxWidth > 0) {
+                    $newWidth = $maxWidth;
+                    $newHeight = (int) ($origHeight * ($maxWidth / $origWidth));
+                    
+                    // If height still exceeds max, scale down further
+                    if ($maxHeight > 0 && $newHeight > $maxHeight) {
+                        $newHeight = $maxHeight;
+                        $newWidth = (int) ($origWidth * ($maxHeight / $origHeight));
+                    }
+                }
+                break;
+
+            case 'height':
+                // Height priority - maintain aspect ratio
+                if ($maxHeight > 0) {
+                    $newHeight = $maxHeight;
+                    $newWidth = (int) ($origWidth * ($maxHeight / $origHeight));
+                    
+                    // If width still exceeds max, scale down further
+                    if ($maxWidth > 0 && $newWidth > $maxWidth) {
+                        $newWidth = $maxWidth;
+                        $newHeight = (int) ($origHeight * ($maxWidth / $origWidth));
+                    }
+                }
+                break;
+
+            case 'crop':
+                // Crop to exact dimensions from center
+                if ($maxWidth > 0 && $maxHeight > 0) {
+                    $newWidth = $maxWidth;
+                    $newHeight = $maxHeight;
+                    
+                    // Calculate aspect ratios
+                    $origRatio = $origWidth / $origHeight;
+                    $targetRatio = $maxWidth / $maxHeight;
+                    
+                    if ($origRatio > $targetRatio) {
+                        // Original is wider - crop width
+                        $srcHeight = $origHeight;
+                        $srcWidth = (int) ($origHeight * $targetRatio);
+                        $srcX = (int) (($origWidth - $srcWidth) / 2);
+                        $srcY = 0;
+                    } else {
+                        // Original is taller - crop height
+                        $srcWidth = $origWidth;
+                        $srcHeight = (int) ($origWidth / $targetRatio);
+                        $srcX = 0;
+                        $srcY = (int) (($origHeight - $srcHeight) / 2);
+                    }
+                }
+                break;
+        }
+
+        // Create new image
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+        
+        // Preserve transparency for PNG and GIF
+        if ($sourceExt === 'png' || $sourceExt === 'gif') {
+            imagealphablending($newImage, false);
+            imagesavealpha($newImage, true);
+            $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
+            imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        // Resize/crop image
+        imagecopyresampled($newImage, $sourceImage, 0, 0, $srcX, $srcY, $newWidth, $newHeight, $srcWidth, $srcHeight);
+
+        // Get quality setting
+        $params = ComponentHelper::getParams('com_phocamosaic');
+        $quality = (int) $params->get('image_quality', 90);
+
+        // Save resized image (overwrite original)
+        $success = false;
+        switch (strtolower($sourceExt)) {
+            case 'jpg':
+            case 'jpeg':
+                $success = imagejpeg($newImage, $sourcePath, $quality);
+                break;
+            case 'png':
+                // PNG quality is 0-9 (compression level), convert from 0-100
+                $pngQuality = (int) (9 - ($quality / 100 * 9));
+                $success = imagepng($newImage, $sourcePath, $pngQuality);
+                break;
+            case 'gif':
+                $success = imagegif($newImage, $sourcePath);
+                break;
+            case 'webp':
+                $success = imagewebp($newImage, $sourcePath, $quality);
+                break;
+        }
+
+        imagedestroy($sourceImage);
+        imagedestroy($newImage);
+
+        if ($success) {
+            chmod($sourcePath, 0644);
+            return $sourcePath;
+        }
+
+        return false;
     }
 
     /**

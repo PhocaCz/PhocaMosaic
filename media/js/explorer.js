@@ -8,7 +8,22 @@
 
 class ExplorerController {
     constructor() {
-        this.currentFolder = this.getFolderFromURL() || 'images';
+        // Get editor config from Joomla
+        this.editorConfig = Joomla.getOptions('com_phocamosaic.editor', {
+            editorMode: false,
+            editorName: ''
+        });
+        
+        // If in editor mode, try to restore last folder from localStorage
+        let initialFolder = this.getFolderFromURL() || 'images';
+        if (this.editorConfig.editorMode) {
+            const lastFolder = localStorage.getItem('phocamosaic.lastFolder');
+            if (lastFolder) {
+                initialFolder = lastFolder;
+            }
+        }
+        
+        this.currentFolder = initialFolder;
         this.images = [];
         this.csrfToken = document.getElementById('csrf-token').value;
         
@@ -159,6 +174,25 @@ class ExplorerController {
                 this.handleUpload(files);
             }
         });
+        
+        // Mobile folder toggle
+        const mobileFolderToggle = document.getElementById('mobile-folder-toggle');
+        const folderTree = document.querySelector('.folder-tree');
+        const folderTreeOverlay = document.getElementById('folder-tree-overlay');
+        
+        if (mobileFolderToggle) {
+            mobileFolderToggle.addEventListener('click', () => {
+                folderTree.classList.add('mobile-open');
+                folderTreeOverlay.classList.add('active');
+            });
+        }
+        
+        if (folderTreeOverlay) {
+            folderTreeOverlay.addEventListener('click', () => {
+                folderTree.classList.remove('mobile-open');
+                folderTreeOverlay.classList.remove('active');
+            });
+        }
     }
 
     async loadFolderTree() {
@@ -218,6 +252,11 @@ class ExplorerController {
     async selectFolder(path) {
         this.currentFolder = path;
         
+        // Save to localStorage if in editor mode so it remembers for next time
+        if (this.editorConfig.editorMode) {
+            localStorage.setItem('phocamosaic.lastFolder', path);
+        }
+        
         // Update active state
         document.querySelectorAll('.folder-item').forEach(item => {
             item.classList.remove('active');
@@ -243,10 +282,40 @@ class ExplorerController {
             if (result.success) {
                 this.images = result.data;
                 this.renderImages(this.images);
+                this.updateBreadcrumb();
             }
         } catch (error) {
             console.error('Failed to load images:', error);
         }
+    }
+    
+    updateBreadcrumb() {
+        const breadcrumb = document.getElementById('folder-breadcrumb');
+        if (!breadcrumb) return;
+        
+        const parts = this.currentFolder.split('/').filter(p => p);
+        let html = `<li class="mosaic-breadcrumb-item"><a href="#" data-folder="">${this.t('COM_PHOCAMOSAIC_ROOT', 'Root')}</a></li>`;
+        
+        let path = '';
+        parts.forEach((part, index) => {
+            path += (path ? '/' : '') + part;
+            if (index === parts.length - 1) {
+                html += `<li class="mosaic-breadcrumb-item active">${part}</li>`;
+            } else {
+                html += `<li class="mosaic-breadcrumb-item"><a href="#" data-folder="${path}">${part}</a></li>`;
+            }
+        });
+        
+        breadcrumb.innerHTML = html;
+        
+        // Attach click handlers to breadcrumb links
+        breadcrumb.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const folder = e.target.dataset.folder;
+                this.selectFolder(folder);
+            });
+        });
     }
 
     renderImages(images) {
@@ -257,14 +326,34 @@ class ExplorerController {
             return;
         }
 
+        const svgInfo = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M120,120a8,8,0,0,1,8,8v40a8,8,0,0,0,8,8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="124" cy="84" r="12"/></svg>';
+
+        const svgRename = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><polygon points="128 160 96 160 96 128 192 32 224 64 128 160" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="168" y1="56" x2="200" y2="88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M216,128v80a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8h80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>';
+
+        const svgInsert = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect x="40" y="40" width="176" height="176" rx="8" transform="translate(0 256) rotate(-90)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="96 112 96 160 144 160" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="160" y1="96" x2="96" y2="160" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>';
+
+        const svgDelete = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><line x1="216" y1="56" x2="40" y2="56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="104" y1="104" x2="104" y2="168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="152" y1="104" x2="152" y2="168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>';
+
+        // Build insert button HTML if in editor mode
+        const insertButtonHTML = this.editorConfig.editorMode 
+            ? `<button class="phoca-action-btn phoca-action-insert" title="${this.t('COM_PHOCAMOSAIC_INSERT', 'Insert')}" data-action="insert">${svgInsert}</button>`
+            : '';
+        
+        // Build edit button HTML if in editor mode
+        /*const editButtonHTML = this.editorConfig.editorMode 
+            ? `<button class="phoca-action-btn phoca-action-edit" title="${this.t('COM_PHOCAMOSAIC_EDIT', 'Edit')}" data-action="edit">🎨</button>`
+            : '';*/
+         // ${editButtonHTML}
+
         // title="${image.path}"
         container.innerHTML = images.map(image => `
             <div class="image-card" data-path="${image.path}">
                 <img src="${image.thumbnailUrl}" alt="${image.filename}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%232a2a2a%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3E${this.t('COM_PHOCAMOSAIC_NO_PREVIEW', 'No Preview')}%3C/text%3E%3C/svg%3E'">
                 <div class="phoca-image-actions">
-                    <button class="phoca-action-btn phoca-action-info" title="${this.t('COM_PHOCAMOSAIC_SHOW_INFO', 'Show Info')}" data-action="info">ℹ️</button>
-                    <button class="phoca-action-btn phoca-action-rename" title="${this.t('COM_PHOCAMOSAIC_RENAME', 'Rename')}" data-action="rename">✏️</button>
-                    <button class="phoca-action-btn phoca-action-delete" title="${this.t('COM_PHOCAMOSAIC_DELETE', 'Delete')}" data-action="delete">🗑️</button>
+                    ${insertButtonHTML}
+                    <button class="phoca-action-btn phoca-action-info" title="${this.t('COM_PHOCAMOSAIC_SHOW_INFO', 'Show Info')}" data-action="info">${svgInfo}</button>
+                    <button class="phoca-action-btn phoca-action-rename" title="${this.t('COM_PHOCAMOSAIC_RENAME', 'Rename')}" data-action="rename">${svgRename}</button>
+                    <button class="phoca-action-btn phoca-action-delete" title="${this.t('COM_PHOCAMOSAIC_DELETE', 'Delete')}" data-action="delete">${svgDelete}</button>
                 </div>
                 <div class="phoca-image-info-tooltip" style="display:none">${image.path}</div>
                 <div class="image-card-info">
@@ -299,19 +388,40 @@ class ExplorerController {
                 const path = card.dataset.path;
                 const filename = card.querySelector('.image-card-filename').textContent;
                 
-                this.handleAction(action, path, filename);
+                // Get image dimensions from the card
+                const metaText = card.querySelector('.image-card-meta span').textContent;
+                const dimensions = metaText.match(/(\d+)\s*×\s*(\d+)/);
+                const width = dimensions ? dimensions[1] : '';
+                const height = dimensions ? dimensions[2] : '';
+                
+                this.handleAction(action, path, filename, width, height);
             });
         });
     }
 
     openEditor(imagePath) {
-        window.location.href = `index.php?option=com_phocamosaic&view=editor&path=${encodeURIComponent(imagePath)}`;
+        // Preserve tmpl and e_name parameters if we're in component mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const tmpl = urlParams.get('tmpl');
+        const eName = urlParams.get('e_name');
+        
+        let extraParams = '';
+        if (tmpl) extraParams += `&tmpl=${tmpl}`;
+        if (eName) extraParams += `&e_name=${eName}`;
+        
+        window.location.href = `index.php?option=com_phocamosaic&view=editor&path=${encodeURIComponent(imagePath)}${extraParams}`;
     }
 
-    handleAction(action, path, filename) {
+    handleAction(action, path, filename, width = '', height = '') {
         switch (action) {
             case 'info':
                 this.showInfo(path);
+                break;
+            case 'insert':
+                this.showInsertModal(path, filename, width, height);
+                break;
+            case 'edit':
+                this.openEditor(path);
                 break;
             case 'rename':
                 this.showRenameModal(path, filename);
@@ -344,6 +454,98 @@ class ExplorerController {
             }, 5000);
         } else {
             tooltip.style.display = 'none';
+        }
+    }
+
+    showInsertModal(path, filename, width, height) {
+        // Use the path directly (it's already relative to site root)
+        const imageSrc = path;
+        
+        const body = `
+            <div style="margin-bottom: 1rem;">
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_IMAGE_ALT', 'Image Description (Alt Text)')}</label>
+                <input type="text" id="insert-alt" class="mosaic-dialog-input" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="mosaic-dialog-label">
+                    <input type="checkbox" id="insert-lazy" checked />
+                    ${this.t('COM_PHOCAMOSAIC_IMAGE_LAZY_LOAD', 'Image will be lazy loaded')}
+                </label>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_IMAGE_CLASS', 'Image Class')}</label>
+                <input type="text" id="insert-image-class" class="mosaic-dialog-input" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_FIGURE_CLASS', 'Figure Class')}</label>
+                <input type="text" id="insert-figure-class" class="mosaic-dialog-input" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="mosaic-dialog-label">${this.t('COM_PHOCAMOSAIC_FIGURE_CAPTION', 'Figure Caption')}</label>
+                <input type="text" id="insert-figure-caption" class="mosaic-dialog-input" />
+            </div>
+        `;
+        
+        this.showModal(
+            this.t('COM_PHOCAMOSAIC_INSERT_IMAGE', 'Insert Image'),
+            body,
+            [
+                { 
+                    text: this.t('COM_PHOCAMOSAIC_CANCEL', 'Cancel'), 
+                    class: 'mosaic-dialog-btn-secondary', 
+                    onClick: () => this.closeModal() 
+                },
+                { 
+                    text: this.t('COM_PHOCAMOSAIC_INSERT', 'Insert'), 
+                    class: 'mosaic-dialog-btn-primary', 
+                    onClick: () => this.handleInsert(imageSrc, width, height) 
+                }
+            ]
+        );
+        
+        // Focus alt text input
+        setTimeout(() => {
+            const input = document.getElementById('insert-alt');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 100);
+    }
+
+    handleInsert(src, width, height) {
+        // Get values from the modal
+        const alt = document.getElementById('insert-alt')?.value || '';
+        const lazyLoad = document.getElementById('insert-lazy')?.checked || false;
+        const imageClass = document.getElementById('insert-image-class')?.value || '';
+        const figureClass = document.getElementById('insert-figure-class')?.value || '';
+        const figureCaption = document.getElementById('insert-figure-caption')?.value || '';
+        
+        // Build image data object
+        const imageData = {
+            src,
+            alt,
+            width,
+            height,
+            lazyLoad,
+            imageClass,
+            figureClass,
+            figureCaption
+        };
+        
+        // Call the global function to insert into editor
+        if (window.parent && window.parent.PhocaMosaicInsertImage) {
+            const success = window.parent.PhocaMosaicInsertImage(this.editorConfig.editorName, imageData);
+            if (success) {
+                this.closeModal();
+                // Close the iframe/popup
+                if (window.parent.Joomla && window.parent.Joomla.Modal) {
+                    window.parent.Joomla.Modal.getCurrent()?.close();
+                }
+            }
+        } else {
+            console.error('PhocaMosaicInsertImage function not found in parent window');
+            this.showToast('Failed to insert image', 'error');
         }
     }
 
