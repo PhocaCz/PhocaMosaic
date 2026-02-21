@@ -10,7 +10,7 @@
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaMosaic/releases/download/6.0.0Beta/com_phocamosaic_v6.0.0Beta.zip</downloadurl>
 		</downloads>
-		<sha512>5daa6eb9a1cca3448e47be80e8d1201f67434b97bbcfafafa99ed13b0eccc60589a29221782280c534fba0a103b42d303810b0c247536c2a85dfd4e09a68f38e</sha512>
+		<sha512>f3c8e6430ec6977ec742f8ff076b8b614e8afb02e9f40377d89a09bab1cfec233435898b4de10ec9850695fece3ef173facb609745835de0c0761885fb8a6f38</sha512>
 		<tags>
 			<tag>stable</tag>
 		</tags>

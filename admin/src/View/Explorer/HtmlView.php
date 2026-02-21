@@ -127,10 +127,12 @@ class HtmlView extends BaseHtmlView
         // Get toolbar instance
         $toolbar = Factory::getApplication()->getDocument()->getToolbar();
 
-        $toolbar->linkButton('dashboard', 'COM_PHOCAMOSAIC_HOME')
+        if ($tmpl !== 'component') {
+            $toolbar->linkButton('dashboard', 'COM_PHOCAMOSAIC_HOME')
             ->url('index.php?option=com_phocamosaic')
             ->icon('icon-home-2')
             ->buttonClass('btn btn-primary');
+        }
         
         // Add Create Folder button
         $toolbar->standardButton('create-folder')
