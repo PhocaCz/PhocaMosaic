@@ -98,7 +98,7 @@
             <option value="crop">COM_PHOCAMOSAIC_RESIZE_CROP_CENTER</option>
         </field>
         
-        <field
+        <!--<field
             name="storage_method"
             type="list"
             label="COM_PHOCAMOSAIC_STORAGE_METHOD"
@@ -107,7 +107,7 @@
         >
             <option value="json">JSON Sidecar Files</option>
             <option value="database">Database</option>
-        </field>
+        </field>-->
         
         <field
             name="preset_storage"

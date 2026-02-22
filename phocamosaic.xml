@@ -2,7 +2,7 @@
 <extension type="component" method="upgrade" version="6.0">
 	<name>com_phocamosaic</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>21/02/2026</creationDate>
+	<creationDate>22/02/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>

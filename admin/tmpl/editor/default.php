@@ -111,9 +111,9 @@ $this->document->addScriptOptions('com_phocamosaic.translations', [
 // Pass component configuration to JavaScript
 $params = ComponentHelper::getParams('com_phocamosaic');
 $this->document->addScriptOptions('com_phocamosaic.config', [
-    'presetStorage' => $params->get('preset_storage', 'localStorage'),
-    'storageMethod' => $params->get('storage_method', 'json'),
+    'presetStorage' => $params->get('preset_storage', 'localStorage')
 ]);
+//     'storageMethod' => $params->get('storage_method', 'json'),
 
 $token = Session::getFormToken();
 $baseUrl = rtrim(Uri::root(), '/') . '/';

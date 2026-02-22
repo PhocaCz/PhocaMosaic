@@ -119,10 +119,10 @@ class EnhancedMosaicEditor {
         
         // Get configuration from Joomla
         this.config = Joomla.getOptions('com_phocamosaic.config', {
-            presetStorage: 'localStorage',
-            storageMethod: 'json'
+            presetStorage: 'localStorage'
         });
         
+        //             storageMethod: 'json'
         // Debug: Log configuration
         //console.log('Phoca Mosaic Config:', this.config);
         

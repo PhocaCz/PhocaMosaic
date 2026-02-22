@@ -13,9 +13,10 @@ namespace Phoca\Component\PhocaMosaic\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Session\Session;
-use Joomla\CMS\Language\Text;
 use Phoca\Component\PhocaMosaic\Administrator\Model\ImageModel;
 use Phoca\Component\PhocaMosaic\Administrator\Model\MetadataModel;
 
@@ -51,10 +52,12 @@ class EditorController extends BaseController
      */
     public function saveImage(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
-        $app = $this->app;
+        //$app = $this->app;
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
         $input = $app->input;
         
         // Set format to raw to prevent template rendering
@@ -98,7 +101,7 @@ class EditorController extends BaseController
      *
      * @since   6.0.0
      */
-    public function saveAsImage(): void
+   /* public function saveAsImage(): void
     {
         Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
@@ -158,6 +161,85 @@ class EditorController extends BaseController
         }
 
         $app->close();
+    }*/
+
+    public function saveAsImage(): void
+    {
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
+        $this->checkEditPermission();
+
+        $input       = $this->app->input;
+        $imagePath   = $input->getString('path', '');
+        $filename = $input->getString('filename', '');
+        $imageFormat = $input->getString('format', 'jpg');
+        $files       = $input->files->get('image');
+
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+
+        try {
+
+            if (empty($imagePath)) {
+                throw new \Exception('Image path is required');
+            }
+            
+            if (empty($filename)) {
+                throw new \Exception('Filename is required');
+            }
+       
+            if (empty($files) || $files['error'] !== UPLOAD_ERR_OK) {
+                throw new \Exception('No image file uploaded');
+            }
+            
+            // Validate format
+            $allowedFormats = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (!in_array(strtolower($imageFormat), $allowedFormats)) {
+                throw new \Exception('Invalid image format');
+            }
+            
+            // Get directory from original path
+            $pathInfo = pathinfo($imagePath);
+            $directory = $pathInfo['dirname'];
+            
+            // Sanitize filename
+            $filename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $filename);
+            if (empty($filename)) {
+                throw new \Exception('Filename is required');
+            }
+
+            $pathInfo = pathinfo($imagePath);
+            $directory = $pathInfo['dirname'];
+
+            // Build destination from the already-resolved safe directory
+            $newPath = $directory . '/' . $filename . '.' . $imageFormat;
+
+            // Final guard: confirm the constructed path is still inside images/
+            // Sanitize the SOURCE path first – this resolves and validates the real directory
+            $pathSanitizer = new \Phoca\Component\PhocaMosaic\Administrator\Service\PathSanitizer();
+            $sanitizedSourcePath = $pathSanitizer->sanitizePath($imagePath);
+            $directoryFull           = dirname($sanitizedSourcePath);  // safe, resolved directory
+            $newPathFull = $directoryFull . '/' . $filename . '.' . $imageFormat;
+            if (!$pathSanitizer->isWithinImagesDirectory($newPathFull)) {
+                throw new \Exception('Target path is outside allowed directory');
+            }
+
+            $model  = new ImageModel();
+            $result = $model->saveEditedImage($newPath, $files['tmp_name']);
+
+
+            $app->setHeader('Content-Type', 'application/json', true);
+            echo json_encode([
+                'success' => true,
+                'message' => Text::_('COM_PHOCAMOSAIC_SAVE_SUCCESS'),
+                'path' => $newPath
+            ]);
+        } catch (\Exception $e) {
+            $app->setHeader('Content-Type', 'application/json', true);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -169,7 +251,7 @@ class EditorController extends BaseController
      */
     public function applyEdit(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
         $app = $this->app;
@@ -202,9 +284,9 @@ class EditorController extends BaseController
      *
      * @since   6.0.0
      */
-    public function getMetadata(): void
+   /* public function getMetadata(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
         $app = $this->app;
@@ -228,7 +310,7 @@ class EditorController extends BaseController
         }
 
         $app->close();
-    }
+    }*/
 
     /**
      * Save preset to database via AJAX
@@ -239,10 +321,12 @@ class EditorController extends BaseController
      */
     public function savePreset(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
-        $app = $this->app;
+        //$app = $this->app;
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
         $input = $app->input;
         
         $name = $input->getString('name', '');
@@ -286,10 +370,12 @@ class EditorController extends BaseController
      */
     public function loadPresets(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
-        $app = $this->app;
+        //$app = $this->app;
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
 
         try {
             $model = new \Phoca\Component\PhocaMosaic\Administrator\Model\PresetModel();
@@ -320,10 +406,12 @@ class EditorController extends BaseController
      */
     public function deletePreset(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkEditPermission();
 
-        $app = $this->app;
+        //$app = $this->app;
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
         $input = $app->input;
         
         $id = $input->getInt('id', 0);

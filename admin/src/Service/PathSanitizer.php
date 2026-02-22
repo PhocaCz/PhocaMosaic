@@ -54,6 +54,7 @@ class PathSanitizer
      */
     public function sanitizePath(string $path): string
     {
+        
         // Remove any null bytes
         $path = str_replace("\0", '', $path);
         
@@ -65,7 +66,6 @@ class PathSanitizer
         
         // Always make path relative to JPATH_ROOT
         $absolutePath = JPATH_ROOT . '/' . $cleanPath;
-        
         // Resolve the real path to prevent directory traversal
         $realPath = realpath($absolutePath);
         
@@ -73,7 +73,6 @@ class PathSanitizer
         if ($realPath === false) {
             $parentDir = dirname($absolutePath);
             $realParent = realpath($parentDir);
-            
             if ($realParent === false || !$this->isWithinImagesDirectory($realParent)) {
                 throw new InvalidArgumentException('Invalid path: parent directory does not exist or is outside images directory');
             }
@@ -123,7 +122,7 @@ class PathSanitizer
      *
      * @since   6.0.0
      */
-    public function isWithinImagesDirectory(string $path): bool
+    /*public function isWithinImagesDirectory(string $path): bool
     {
         $realBasePath = realpath($this->baseImagesPath);
         
@@ -137,6 +136,21 @@ class PathSanitizer
         
         // Check if path starts with base path
         return strpos($normalizedPath, $normalizedBase) === 0;
+    }*/
+    public function isWithinImagesDirectory(string $path): bool
+    {
+        $realBasePath = realpath($this->baseImagesPath);
+
+        if ($realBasePath === false) {
+            return false;
+        }
+
+        $normalizedPath = Path::clean($path);
+        $normalizedBase = Path::clean($realBasePath);
+
+        // Ensure separator boundary so /images-extra does not match /images
+        return str_starts_with($normalizedPath, $normalizedBase . DIRECTORY_SEPARATOR)
+            || $normalizedPath === $normalizedBase;
     }
 
     /**

@@ -32,7 +32,7 @@ class BackupController extends BaseController
      *
      * @since   6.0.0
      */
-    public function undoEdit(): void
+   /* public function undoEdit(): void
     {
         Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkManagePermission();
@@ -62,6 +62,36 @@ class BackupController extends BaseController
         }
 
         $app->close();
+    } */
+
+    public function undoEdit(): void
+    {
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
+        $this->checkManagePermission();
+
+        $imagePath = $this->app->input->getString('path', '');
+
+        try {
+            $pathSanitizer = new \Phoca\Component\PhocaMosaic\Administrator\Service\PathSanitizer();
+            $safePath = $pathSanitizer->sanitizePath($imagePath);   // throws if outside images/
+
+            $model  = new BackupModel();
+            $result = $model->restoreBackup($safePath);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => Text::_('COM_PHOCAMOSAIC_UNDO_SUCCESS')
+                ]);
+            } else {
+                throw new \Exception('Failed to restore backup');
+            }
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -73,7 +103,7 @@ class BackupController extends BaseController
      */
     public function purgeBackups(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkManagePermission();
 
         $app = $this->app;
@@ -106,7 +136,7 @@ class BackupController extends BaseController
      */
     public function getBackupInfo(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkManagePermission();
 
         $app = $this->app;

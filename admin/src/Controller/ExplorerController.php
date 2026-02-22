@@ -13,9 +13,10 @@ namespace Phoca\Component\PhocaMosaic\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Session\Session;
-use Joomla\CMS\Language\Text;
 use Phoca\Component\PhocaMosaic\Administrator\Model\ExplorerModel;
 
 /**
@@ -50,7 +51,7 @@ class ExplorerController extends BaseController
      */
     public function getFolderContents(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -70,22 +71,37 @@ class ExplorerController extends BaseController
             $app->setHeader('Content-Type', 'application/json', true);
             echo json_encode([
                 'success' => true,
-                'data' => $images,
+                'data' => $images
+            ]);
+            /*
+            ,
                 'debug' => [
                     'folderPath' => $folderPath,
                     'recursive' => $recursive,
                     'recursiveRaw' => $input->get('recursive'),
                     'count' => count($images)
                 ]
-            ]);
+                    */
         } catch (\Exception $e) {
+            if (defined('JDEBUG') && JDEBUG) {
+                Factory::getApplication()->getLogger()->error(
+                    'PhocaMosaic getFolderContents: ' . $e->getMessage(),
+                    ['trace' => $e->getTraceAsString()]
+                );
+            }
+
             $app->setHeader('Content-Type', 'application/json', true);
+            echo json_encode(['success' => false, 'message' => Text::_('COM_PHOCAMOSAIC_ERROR_GENERIC')]);
+        }
+
+        /*
+        } catch (\Exception $e) {
             echo json_encode([
                 'success' => false,
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace'   => $e->getTraceAsString()
             ]);
-        }
+        } */
 
         $app->close();
     }
@@ -99,7 +115,7 @@ class ExplorerController extends BaseController
      */
     public function searchImages(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -141,7 +157,7 @@ class ExplorerController extends BaseController
      */
     public function getFolderTree(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -178,8 +194,9 @@ class ExplorerController extends BaseController
      */
     public function uploadImages(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
+        $this->checkUploadRateLimit();
 
         $app = $this->app;
         $input = $app->input;
@@ -240,7 +257,7 @@ class ExplorerController extends BaseController
      */
     public function renameImage(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -283,7 +300,7 @@ class ExplorerController extends BaseController
      */
     public function deleteImage(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -324,7 +341,7 @@ class ExplorerController extends BaseController
      */
     public function countBackups(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -358,7 +375,7 @@ class ExplorerController extends BaseController
      */
     public function deleteBackups(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -393,7 +410,7 @@ class ExplorerController extends BaseController
      */
     public function createFolder(): void
     {
-        Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+        Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $this->checkPermissions();
 
         $app = $this->app;
@@ -429,6 +446,31 @@ class ExplorerController extends BaseController
         }
 
         $app->close();
+    }
+
+    /**
+     * Check and increment the upload rate limit counter.
+     * Throws if the user has exceeded maxUploads in windowSeconds.
+     */
+    private function checkUploadRateLimit(int $maxUploads = 20, int $windowSeconds = 60): void
+    {
+        $session = $this->app->getSession();
+        $key     = 'com_phocamosaic.upload_rate';
+        $now     = time();
+
+        $data = $session->get($key, ['count' => 0, 'window_start' => $now]);
+
+        if (($now - $data['window_start']) > $windowSeconds) {
+            // Reset window
+            $data = ['count' => 0, 'window_start' => $now];
+        }
+
+        $data['count']++;
+        $session->set($key, $data);
+
+        if ($data['count'] > $maxUploads) {
+            throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_RATE_LIMIT_EXCEEDED'));
+        }
     }
 }
 

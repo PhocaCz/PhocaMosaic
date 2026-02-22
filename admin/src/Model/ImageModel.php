@@ -14,7 +14,9 @@ namespace Phoca\Component\PhocaMosaic\Administrator\Model;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseModel;
+use Joomla\Filesystem\Folder;
 use Phoca\Component\PhocaMosaic\Administrator\Service\ImageProcessor;
 use Phoca\Component\PhocaMosaic\Administrator\Service\PathSanitizer;
 
@@ -161,7 +163,15 @@ class ImageModel extends BaseModel
             $previewDir = dirname($absolutePath) . '/.mosaic_previews';
             
             if (!is_dir($previewDir)) {
-                mkdir($previewDir, 0755, true);
+                //mkdir($previewDir, 0755, true);
+                if (!Folder::create($previewDir)) {
+                    //throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_CREATE_FOLDER_FAILED'));
+                    return null;
+                }
+                $indexFile = $previewDir . '/index.html';
+                if (!file_exists($indexFile)) {
+                    file_put_contents($indexFile, '<!DOCTYPE html><title></title>');
+                }
             }
 
             $previewPath = $previewDir . '/' . basename($absolutePath);
@@ -213,14 +223,15 @@ class ImageModel extends BaseModel
      */
     public function saveEditedImage(string $relativePath, string $uploadedFile): bool
     {
-        try {
+
+       try {
             $absolutePath = $this->pathSanitizer->sanitizePath($relativePath);
             
             // Validate uploaded file
             if (!file_exists($uploadedFile)) {
                 throw new \Exception('Uploaded file not found');
             }
-            
+      
             // Create backup first
             $backupModel = new BackupModel();
             $backupModel->createBackup($absolutePath);
@@ -228,11 +239,14 @@ class ImageModel extends BaseModel
             // Move uploaded file to destination
             if (!move_uploaded_file($uploadedFile, $absolutePath)) {
                 // If move fails, try copy
-                if (!copy($uploadedFile, $absolutePath)) {
-                    throw new \Exception('Failed to save image file');
-                }
-                @unlink($uploadedFile);
+               /* if (!copy($uploadedFile, $absolutePath)) {
+                    throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_FAILED_TO_SAVE'));
+                }*/
+                //@unlink($uploadedFile);
+                throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_FAILED_TO_SAVE'));
+                //@unlink($uploadedFile);
             }
+    
 
             // Set proper permissions
             chmod($absolutePath, 0644);

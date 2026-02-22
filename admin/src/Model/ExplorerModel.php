@@ -336,7 +336,10 @@ class ExplorerModel extends BaseModel
 
         // Ensure target directory exists
         if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0755, true);
+            //mkdir($targetPath, 0755, true);
+            if (!Folder::create($targetPath)) {
+                throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_CREATE_FOLDER_FAILED'));
+            }
         }
 
         foreach ($files as $file) {
@@ -933,9 +936,20 @@ class ExplorerModel extends BaseModel
         }
 
         // Create the folder
-        if (!mkdir($newFolderPath, 0755, false)) {
+       /* if (!mkdir($newFolderPath, 0755, false)) {
             throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_CREATE_FOLDER_FAILED'));
+        }*/
+
+        if (!Folder::create($newFolderPath)) {
+            throw new \Exception(Text::_('COM_PHOCAMOSAIC_ERROR_CREATE_FOLDER_FAILED'));
+        } else {
+            $indexFile = $newFolderPath . '/index.html';
+            if (!file_exists($indexFile)) {
+                file_put_contents($indexFile, '<!DOCTYPE html><title></title>');
+            }
         }
+
+        
 
         return [
             'path' => $this->pathSanitizer->getRelativePath($newFolderPath),
