@@ -346,9 +346,18 @@ class ExplorerController {
          // ${editButtonHTML}
 
         // title="${image.path}"
-        container.innerHTML = images.map(image => `
-            <div class="image-card" data-path="${image.path}">
-                <img src="${image.thumbnailUrl}" alt="${image.filename}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%232a2a2a%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3E${this.t('COM_PHOCAMOSAIC_NO_PREVIEW', 'No Preview')}%3C/text%3E%3C/svg%3E'">
+
+
+
+        container.innerHTML = images.map(image => {
+
+            // when saving the image, and close the editoer, explorer displays old version:
+            const cacheBuster = new Date(image.dateModified).getTime();
+            const versionedUrl = `${image.thumbnailUrl}?t=${cacheBuster}`;
+
+
+            return `<div class="image-card" data-path="${image.path}">
+                <img src="${versionedUrl}" alt="${image.filename}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%232a2a2a%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3E${this.t('COM_PHOCAMOSAIC_NO_PREVIEW', 'No Preview')}%3C/text%3E%3C/svg%3E'">
                 <div class="phoca-image-actions">
                     ${insertButtonHTML}
                     <button class="phoca-action-btn phoca-action-info" title="${this.t('COM_PHOCAMOSAIC_SHOW_INFO', 'Show Info')}" data-action="info">${svgInfo}</button>
@@ -364,7 +373,9 @@ class ExplorerController {
                     </div>
                 </div>
             </div>
-        `).join('');
+          `;
+
+        }).join('');
 
         // Attach click handlers to image cards (for opening editor)
         container.querySelectorAll('.image-card').forEach(card => {
