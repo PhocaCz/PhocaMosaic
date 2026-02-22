@@ -322,7 +322,9 @@ class EnhancedMosaicEditor {
     async loadImage() {
         try {
             let cleanPath = this.imagePath.replace(/^\/+/, '');
-            let imageUrl = this.baseUrl + cleanPath;
+            //let imageUrl = this.baseUrl + cleanPath;
+            // Force refresh in editor
+            let imageUrl = this.baseUrl + cleanPath + '?t=' + Date.now();
             imageUrl = imageUrl.replace(/([^:]\/)\/+/g, "$1");
             
             const img = new Image();
